@@ -2,29 +2,24 @@ import api from './api'
 
 export default {
   async login(email, password) {
-    try {
-      const response = await api.post('/login', { email, password })
-      
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data.user))
-      
-      return response.data
-    } catch (error) {
-      throw error.response?.data?.message || 'Error al iniciar sesión'
-    }
+    const response = await api.post('/login', { email, password })
+
+    // Guardar solo el usuario
+    localStorage.setItem('user', JSON.stringify(response.data.user))
+
+    return response.data
   },
 
   logout() {
-    localStorage.removeItem('token')
     localStorage.removeItem('user')
   },
 
   getUser() {
-    const user = localStorage.getItem('user')
-    return user ? JSON.parse(user) : null
+    const userStr = localStorage.getItem('user')
+    return userStr ? JSON.parse(userStr) : null
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem('token')
-  }
+    return !!this.getUser()
+  },
 }
