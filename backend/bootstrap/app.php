@@ -12,13 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
-        $middleware->validateCsrfTokens(except: [
-            'api/*'
+        // Registrar alias de middleware personalizado
+        $middleware->alias([
+            'check.permissions' => \App\Http\Middleware\CheckPermissions::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
+    ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

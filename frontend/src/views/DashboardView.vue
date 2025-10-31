@@ -7,11 +7,6 @@
           <h1>📊 Dashboard</h1>
           <p class="subtitle">Resumen general del negocio</p>
         </div>
-        <div class="user-info">
-          <span>👤 {{ user?.nombre }}</span>
-          <span class="role-badge">{{ user?.rol }}</span>
-          <button @click="handleLogout" class="btn-logout">🚪 Cerrar Sesión</button>
-        </div>
       </div>
 
       <!-- KPIs -->
@@ -49,6 +44,46 @@
         </div>
       </div>
 
+      <!-- Sección de Cocina -->
+      <div class="section-header">
+        <h2>👨‍🍳 Estado de Cocina</h2>
+        <router-link to="/cocina" class="btn-link">Ver Cocina →</router-link>
+      </div>
+
+      <div class="cocina-grid">
+        <div class="cocina-card pending">
+          <div class="cocina-icon">⏳</div>
+          <div class="cocina-info">
+            <h3>{{ cocina.pedidos_pendientes || 0 }}</h3>
+            <p>Pedidos Pendientes</p>
+          </div>
+        </div>
+
+        <div class="cocina-card cooking">
+          <div class="cocina-icon">👨‍🍳</div>
+          <div class="cocina-info">
+            <h3>{{ cocina.pedidos_en_preparacion || 0 }}</h3>
+            <p>En Preparación</p>
+          </div>
+        </div>
+
+        <div class="cocina-card" :class="{ alert: cocina.pedidos_atrasados > 0 }">
+          <div class="cocina-icon">⚠️</div>
+          <div class="cocina-info">
+            <h3>{{ cocina.pedidos_atrasados || 0 }}</h3>
+            <p>Pedidos Atrasados</p>
+          </div>
+        </div>
+
+        <div class="cocina-card time">
+          <div class="cocina-icon">⏱️</div>
+          <div class="cocina-info">
+            <h3>{{ formatTiempo(cocina.tiempo_promedio_hoy) }}</h3>
+            <p>Tiempo Promedio Hoy</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Quick Actions -->
       <div class="quick-actions">
         <h2>⚡ Acciones Rápidas</h2>
@@ -57,20 +92,17 @@
             <span class="action-icon">📦</span>
             <span>Gestión de Productos</span>
           </button>
-          <button class="action-btn green" disabled>
+          <button @click="$router.push('/ventas')" class="action-btn green">
             <span class="action-icon">💵</span>
             <span>Nueva Venta</span>
-            <small>(Próximamente)</small>
           </button>
-          <button class="action-btn orange" disabled>
-            <span class="action-icon">🍽️</span>
-            <span>Gestión de Mesas</span>
-            <small>(Próximamente)</small>
+          <button @click="$router.push('/cocina')" class="action-btn orange">
+            <span class="action-icon">👨‍🍳</span>
+            <span>Vista de Cocina</span>
           </button>
-          <button class="action-btn purple" disabled>
+          <button @click="$router.push('/reportes')" class="action-btn purple">
             <span class="action-icon">📊</span>
             <span>Reportes</span>
-            <small>(Próximamente)</small>
           </button>
         </div>
       </div>
@@ -149,6 +181,7 @@ export default {
         graficos: {},
         alertas: {},
       },
+      cocina: {},
     }
   },
   computed: {
@@ -163,7 +196,10 @@ export default {
   methods: {
     async loadStats() {
       try {
-        this.stats = await dashboardService.getStats()
+        const response = await dashboardService.getStats()
+        this.stats = response
+        this.cocina = response.cocina || {}
+        console.log('Datos de cocina:', this.cocina)
       } catch (error) {
         console.error('Error al cargar estadísticas:', error)
       }
@@ -175,17 +211,24 @@ export default {
         maximumFractionDigits: 2,
       }).format(num)
     },
+
+    formatTiempo(minutos) {
+      if (!minutos || minutos < 1) return '< 1 min'
+      const mins = Math.floor(minutos)
+      if (mins < 60) return `${mins} min`
+      const horas = Math.floor(mins / 60)
+      const minsRestantes = mins % 60
+      return `${horas}h ${minsRestantes}m`
+    },
   },
 }
 </script>
 
 <style scoped>
-.dashboard-container {
-  padding: 20px;
+.dashboard-page {
+  padding: 30px;
   max-width: 1400px;
   margin: 0 auto;
-  background: #f5f7fa;
-  min-height: 100vh;
 }
 
 .header {
@@ -193,54 +236,49 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .header h1 {
   margin: 0;
-  color: #333;
+  color: #2c3e50;
   font-size: 32px;
 }
 
 .subtitle {
-  color: #777;
+  color: #7f8c8d;
   margin: 5px 0 0 0;
 }
 
-.user-info {
+.section-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
+  margin: 30px 0 20px 0;
 }
 
-.role-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+.section-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 24px;
+}
+
+.btn-link {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
   padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.btn-logout {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 10px 20px;
+  border: 2px solid #3498db;
   border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
+  transition: all 0.3s;
 }
 
-.btn-logout:hover {
-  background: #c0392b;
+.btn-link:hover {
+  background: #3498db;
+  color: white;
 }
 
-/* KPIs */
+/* KPIs Grid */
 .kpis-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -252,61 +290,128 @@ export default {
   background: white;
   padding: 25px;
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
 }
 
 .kpi-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.kpi-card.blue {
+  border-left: 4px solid #3498db;
+}
+.kpi-card.green {
+  border-left: 4px solid #27ae60;
+}
+.kpi-card.orange {
+  border-left: 4px solid #e67e22;
+}
+.kpi-card.purple {
+  border-left: 4px solid #9b59b6;
 }
 
 .kpi-icon {
-  font-size: 48px;
-  opacity: 0.9;
+  font-size: 40px;
 }
 
 .kpi-content h3 {
   margin: 0;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: #2c3e50;
 }
 
 .kpi-content p {
   margin: 5px 0 0 0;
-  color: #777;
+  color: #7f8c8d;
   font-size: 14px;
 }
 
-.kpi-card.blue {
-  border-left: 5px solid #3498db;
+/* Cocina Grid */
+.cocina-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
 }
-.kpi-card.green {
-  border-left: 5px solid #2ecc71;
+
+.cocina-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-left: 4px solid #95a5a6;
+  transition: all 0.3s;
 }
-.kpi-card.orange {
-  border-left: 5px solid #e67e22;
+
+.cocina-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
-.kpi-card.purple {
-  border-left: 5px solid #9b59b6;
+
+.cocina-card.pending {
+  border-left-color: #f39c12;
+}
+
+.cocina-card.cooking {
+  border-left-color: #3498db;
+}
+
+.cocina-card.time {
+  border-left-color: #9b59b6;
+}
+
+.cocina-card.alert {
+  border-left-color: #e74c3c;
+  background: #fff5f5;
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%,
+  100% {
+    border-left-width: 4px;
+  }
+  50% {
+    border-left-width: 6px;
+  }
+}
+
+.cocina-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.cocina-info h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.cocina-info p {
+  margin: 5px 0 0 0;
+  color: #7f8c8d;
+  font-size: 12px;
 }
 
 /* Quick Actions */
 .quick-actions {
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
   margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .quick-actions h2 {
-  margin-top: 0;
-  color: #333;
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 24px;
 }
 
 .actions-grid {
@@ -317,7 +422,7 @@ export default {
 
 .action-btn {
   background: white;
-  border: 2px solid #e0e0e0;
+  border: 2px solid #e9ecef;
   padding: 20px;
   border-radius: 12px;
   cursor: pointer;
@@ -325,14 +430,14 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  font-size: 16px;
-  font-weight: 600;
   transition: all 0.3s;
+  font-weight: 600;
+  font-size: 15px;
 }
 
-.action-btn:not(:disabled):hover {
+.action-btn:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .action-btn:disabled {
@@ -340,34 +445,25 @@ export default {
   cursor: not-allowed;
 }
 
-.action-btn.blue:not(:disabled) {
-  border-color: #3498db;
-  color: #3498db;
-}
-
-.action-btn.green:not(:disabled) {
-  border-color: #2ecc71;
-  color: #2ecc71;
-}
-
-.action-btn.orange:not(:disabled) {
-  border-color: #e67e22;
-  color: #e67e22;
-}
-
-.action-btn.purple:not(:disabled) {
-  border-color: #9b59b6;
-  color: #9b59b6;
-}
-
 .action-icon {
   font-size: 32px;
 }
 
-.action-btn small {
-  font-size: 11px;
-  font-weight: normal;
-  color: #999;
+.action-btn.blue:hover:not(:disabled) {
+  border-color: #3498db;
+  color: #3498db;
+}
+.action-btn.green:hover:not(:disabled) {
+  border-color: #27ae60;
+  color: #27ae60;
+}
+.action-btn.orange:hover:not(:disabled) {
+  border-color: #e67e22;
+  color: #e67e22;
+}
+.action-btn.purple:hover:not(:disabled) {
+  border-color: #9b59b6;
+  color: #9b59b6;
 }
 
 /* Charts */
@@ -382,16 +478,13 @@ export default {
   background: white;
   padding: 25px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .chart-card h3 {
-  margin-top: 0;
-  color: #333;
-}
-
-.chart-content {
-  margin-top: 20px;
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 18px;
 }
 
 .bar-chart-item {
@@ -401,34 +494,32 @@ export default {
 .bar-label {
   display: block;
   margin-bottom: 5px;
-  font-size: 14px;
-  color: #555;
   font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
 }
 
 .bar-container {
-  background: #f0f0f0;
+  background: #ecf0f1;
   border-radius: 8px;
-  height: 30px;
-  position: relative;
   overflow: hidden;
+  height: 30px;
 }
 
 .bar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, #3498db, #2980b9);
   height: 100%;
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   padding-right: 10px;
-  transition: width 0.5s;
+  transition: width 0.6s ease;
 }
 
 .bar-value {
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .top-item {
@@ -436,11 +527,15 @@ export default {
   align-items: center;
   gap: 15px;
   padding: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.top-item:last-child {
+  border-bottom: none;
 }
 
 .top-rank {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #3498db;
   color: white;
   width: 30px;
   height: 30px;
@@ -454,41 +549,39 @@ export default {
 
 .top-name {
   flex: 1;
-  color: #333;
-  font-weight: 600;
+  font-weight: 500;
+  color: #2c3e50;
 }
 
 .top-price {
-  color: #2ecc71;
   font-weight: 700;
+  color: #27ae60;
   font-size: 16px;
 }
 
-/* Alertas */
+/* Alerts */
 .alerts-section {
-  background: #fff3cd;
+  background: white;
   padding: 25px;
   border-radius: 12px;
-  border-left: 5px solid #e67e22;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .alerts-section h2 {
-  margin-top: 0;
-  color: #856404;
-}
-
-.alerts-list {
-  display: grid;
-  gap: 10px;
+  margin: 0 0 20px 0;
+  color: #e67e22;
+  font-size: 20px;
 }
 
 .alert-item {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 15px;
+  padding: 15px;
+  background: #fff3cd;
+  border-left: 4px solid #e67e22;
+  border-radius: 8px;
+  margin-bottom: 10px;
 }
 
 .alert-icon {
@@ -497,15 +590,18 @@ export default {
 
 .alert-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .alert-content strong {
-  display: block;
-  color: #333;
+  color: #2c3e50;
+  font-size: 15px;
 }
 
 .alert-content small {
-  color: #777;
+  color: #7f8c8d;
   font-size: 12px;
 }
 
@@ -522,11 +618,27 @@ export default {
 }
 
 .stock-separator {
-  color: #999;
+  color: #95a5a6;
 }
 
 .stock-min {
-  color: #2ecc71;
+  color: #95a5a6;
   font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-page {
+    padding: 20px 15px;
+  }
+
+  .kpis-grid,
+  .cocina-grid,
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

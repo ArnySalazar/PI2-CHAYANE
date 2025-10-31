@@ -7,7 +7,9 @@
           <h1>📦 Gestión de Productos</h1>
           <p class="subtitle">Administra el inventario de productos</p>
         </div>
-        <button @click="abrirModalNuevo" class="btn-primary">➕ Nuevo Producto</button>
+        <button v-if="puedeCrear" @click="abrirModalNuevo" class="btn-primary">
+          ➕ Nuevo Producto
+        </button>
       </div>
 
       <!-- Tabla de productos -->
@@ -34,7 +36,7 @@
                 <div class="empty-state">
                   <span class="empty-icon">📦</span>
                   <p>No hay productos registrados</p>
-                  <button @click="abrirModalNuevo" class="btn-secondary">
+                  <button v-if="puedeCrear" @click="abrirModalNuevo" class="btn-secondary">
                     Agregar primer producto
                   </button>
                 </div>
@@ -63,16 +65,25 @@
                 </span>
               </td>
               <td class="actions">
-                <button @click="editarProducto(producto)" class="btn-icon btn-edit" title="Editar">
+                <button
+                  v-if="puedeEditar"
+                  @click="editarProducto(producto)"
+                  class="btn-icon btn-edit"
+                  title="Editar"
+                >
                   ✏️
                 </button>
                 <button
+                  v-if="puedeEliminar"
                   @click="eliminarProducto(producto.id)"
                   class="btn-icon btn-delete"
                   title="Eliminar"
                 >
                   🗑️
                 </button>
+                <span v-if="!puedeEditar && !puedeEliminar" class="sin-acciones">
+                  👁️ Solo lectura
+                </span>
               </td>
             </tr>
           </tbody>
@@ -157,11 +168,16 @@
 <script>
 import LayoutMain from '@/components/LayoutMain.vue'
 import productosService from '@/services/productos'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'ProductosView',
   components: {
     LayoutMain,
+  },
+  setup() {
+    const authStore = useAuthStore()
+    return { authStore }
   },
   data() {
     return {
@@ -180,6 +196,17 @@ export default {
         stock_minimo: 10,
       },
     }
+  },
+  computed: {
+    puedeCrear() {
+      return this.authStore.canCreate('productos')
+    },
+    puedeEditar() {
+      return this.authStore.canEdit('productos')
+    },
+    puedeEliminar() {
+      return this.authStore.canDelete('productos')
+    },
   },
   mounted() {
     this.cargarProductos()
@@ -233,17 +260,27 @@ export default {
         this.cargarProductos()
       } catch (error) {
         console.error('Error al guardar producto:', error)
-        alert('❌ Error al guardar producto: ' + (error.response?.data?.error || error.message))
+        const mensaje = error.response?.data?.message || error.message
+        alert('❌ ' + mensaje)
       }
     },
 
     editarProducto(producto) {
+      if (!this.puedeEditar) {
+        alert('⚠️ No tienes permisos para editar productos')
+        return
+      }
       this.editando = true
       this.form = { ...producto }
       this.showModal = true
     },
 
     async eliminarProducto(id) {
+      if (!this.puedeEliminar) {
+        alert('⚠️ No tienes permisos para eliminar productos')
+        return
+      }
+
       if (confirm('⚠️ ¿Estás seguro de eliminar este producto?')) {
         try {
           await productosService.delete(id)
@@ -251,7 +288,8 @@ export default {
           this.cargarProductos()
         } catch (error) {
           console.error('Error al eliminar producto:', error)
-          alert('❌ Error al eliminar producto')
+          const mensaje = error.response?.data?.message || 'Error al eliminar producto'
+          alert('❌ ' + mensaje)
         }
       }
     },
@@ -421,6 +459,15 @@ export default {
 .btn-icon:hover {
   transform: scale(1.2);
   background: #f8f9fa;
+}
+
+.sin-acciones {
+  color: #95a5a6;
+  font-size: 13px;
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .text-center {

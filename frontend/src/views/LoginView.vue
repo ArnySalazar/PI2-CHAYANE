@@ -36,8 +36,11 @@
         <!-- Usuarios de prueba -->
         <div class="demo-users">
           <p><strong>Usuarios de prueba:</strong></p>
-          <p>👤 admin@chayane.com / admin123</p>
-          <p>💰 cajero@chayane.com / admin123</p>
+          <p>👑 admin@chayane.com / admin123</p>
+          <p>🍽️ mesera@chayane.com / password123</p>
+          <p>👨‍🍳 cocinero@chayane.com / password123</p>
+          <p>💰 cajera@chayane.com / password123</p>
+          <p>📊 gerente@chayane.com / password123</p>
         </div>
       </form>
     </div>
@@ -45,34 +48,42 @@
 </template>
 
 <script>
-import authService from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'LoginView',
+  setup() {
+    const authStore = useAuthStore()
+    return { authStore }
+  },
   data() {
     return {
-      email: '',
-      password: '',
+      email: 'admin@chayane.com',
+      password: 'admin123',
       loading: false,
       error: '',
     }
   },
   methods: {
     async handleLogin() {
+      if (!this.email || !this.password) {
+        this.error = 'Por favor completa todos los campos'
+        return
+      }
+
       this.loading = true
       this.error = ''
 
       try {
-        const data = await authService.login(this.email, this.password)
+        await this.authStore.login(this.email, this.password)
 
-        // Login exitoso
-        console.log('Login exitoso:', data)
+        console.log('Login exitoso')
 
         // Redirigir al dashboard
         this.$router.push('/dashboard')
       } catch (error) {
-        this.error = error
         console.error('Error en login:', error)
+        this.error = 'Credenciales incorrectas. Verifica tu email y contraseña.'
       } finally {
         this.loading = false
       }
@@ -177,6 +188,7 @@ export default {
   border-radius: 8px;
   margin-bottom: 15px;
   text-align: center;
+  font-weight: 600;
 }
 
 .demo-users {
@@ -190,5 +202,9 @@ export default {
 
 .demo-users p {
   margin: 5px 0;
+}
+
+.demo-users strong {
+  color: #667eea;
 }
 </style>

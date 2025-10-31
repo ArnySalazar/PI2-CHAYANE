@@ -16,29 +16,37 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
-        $usuario = DB::table('users')
+        // Buscar usuario
+        $user = DB::table('users')
             ->where('email', $request->email)
             ->first();
 
-        if (!$usuario || !Hash::check($request->password, $usuario->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'Credenciales inválidas'
             ], 401);
         }
 
+        // Obtener rol
         $rol = DB::table('roles')
-            ->where('id', $usuario->role_id)
+            ->where('id', $user->role_id)
             ->first();
+
+        // 🔥 OBTENER PERMISOS DEL ROL
+        $permissions = DB::table('role_permissions')
+            ->where('role_id', $user->role_id)
+            ->get();
 
         return response()->json([
             'message' => 'Login exitoso',
             'user' => [
-                'id' => $usuario->id,
-                'nombre' => $usuario->name,
-                'email' => $usuario->email,
-                'rol' => $rol->name ?? 'Usuario'  // ← CORREGIDO: name en vez de nombre
-            ],
-            'token' => 'token-' . $usuario->id . '-' . time()
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role_id' => $user->role_id,
+                'role_name' => $rol->name ?? 'Usuario',
+                'permissions' => $permissions
+            ]
         ], 200);
     }
 
@@ -46,18 +54,6 @@ class AuthController extends Controller
     {
         return response()->json([
             'message' => 'Logout exitoso'
-        ], 200);
-    }
-
-    public function me(Request $request)
-    {
-        return response()->json([
-            'user' => [
-                'id' => 1,
-                'nombre' => 'Administrador',
-                'email' => 'admin@chayane.com',
-                'rol' => 'Administrador'
-            ]
         ], 200);
     }
 }

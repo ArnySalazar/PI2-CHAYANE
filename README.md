@@ -1,402 +1,205 @@
-# 🍽️ CHAYANE - ERP para Restaurante "La Sazón de Pilar"
+# 🍽️ Chayane ERP - Sistema de Gestión para Restaurante
 
-## 📋 Descripción del Proyecto
+Sistema completo de gestión para restaurantes con notificaciones en tiempo real, control de cocina, ventas, inventario y reportes.
 
-Sistema web integral de gestión administrativa (ERP) para el restaurante "La Sazón de Pilar". El sistema digitalizará y automatizará los procesos de control de inventario, gestión financiera, generación de reportes, y visibilidad en línea del menú con sistema de reservas.
+## 🚀 Características
 
----
+- ✅ **Sistema de Ventas** con múltiples métodos de pago
+- 👨‍🍳 **Módulo de Cocina** con notificaciones en tiempo real (Pusher)
+- 📦 **Control de Inventario** (productos e insumos)
+- 🍽️ **Gestión de Mesas**
+- 👥 **Sistema de Permisos** por roles
+- 📊 **Dashboard y Reportes**
+- 🔔 **Notificaciones push** para nuevos pedidos
 
-## 👥 Equipo de Desarrollo
-
-- **Total de desarrolladores:** 4 personas
-- **Duración del proyecto:** 12 semanas
-- **Horas por persona:** 15 horas/semana
-
----
-
-## 🛠️ Stack Tecnológico
+## 🛠️ Tecnologías
 
 ### Backend
-- **Framework:** Laravel 10.x
-- **Lenguaje:** PHP 8.1+
-- **Base de datos:** PostgreSQL 14+
-- **API:** RESTful API
+- Laravel 11
+- PostgreSQL
+- Pusher (Broadcasting)
 
 ### Frontend
-- **Framework:** Vue.js 3.x
-- **UI Framework:** Bootstrap 5
-- **Build tool:** Vite
+- Vue 3
+- Vite
+- Pinia (State Management)
+- Axios
+- Laravel Echo + Pusher
 
-### Control de Versiones
-- **Sistema:** Git
-- **Plataforma:** GitHub
-- **Estrategia de branches:** Git Flow
+## 📋 Requisitos Previos
 
-### Infraestructura
-- **Servidor:** Servidores UPCH (Universidad Peruana Cayetano Heredia)
-- **Entorno de desarrollo:** Local (XAMPP/Laragon/Docker)
-
----
-
-## 📦 Módulos del Sistema
-
-### 1. 👤 Gestión de Usuarios y Autenticación
-- Login/Logout
-- Roles: Administrador, Cajero, Mesero
-- Permisos por rol
-
-### 2. 📦 Gestión de Inventario
-- CRUD de productos/insumos
-- Control de stock
-- Alertas de stock mínimo
-- Categorías de productos
-- Historial de movimientos
-
-### 3. 💰 Gestión Financiera
-- Registro de ventas diarias
-- Registro de gastos/egresos
-- Cierre de caja automático
-- Cálculo de utilidades
-- Control de cuentas por cobrar/pagar
-
-### 4. 📊 Dashboard Ejecutivo
-- KPIs en tiempo real
-- Ventas del día/semana/mes
-- Estado de inventario
-- Flujo de caja
-- Gráficos interactivos
-
-### 5. 📈 Reportes y Analytics
-- Reportes de ventas (diario, semanal, mensual)
-- Reportes de inventario
-- Reportes financieros
-- Productos más vendidos
-- Exportación a PDF/Excel
-
-### 6. 🌐 Portal Web Público
-- Página principal del restaurante
-- Menú online con precios
-- Galería de platos
-- Información de contacto
-- Horarios de atención
-
-### 7. 📅 Sistema de Reservas
-- Calendario de reservas
-- Gestión de mesas
-- Confirmación de reservas
-- Notificaciones por email
-
-### 8. 🔔 Sistema de Notificaciones
-- Alertas de stock bajo
-- Recordatorios de tareas
-- Notificaciones de nuevas reservas
-- Resumen diario por email
-
----
-
-## 🗂️ Estructura del Proyecto
-
-```
-chayane-erp/
-├── backend/                    # API Laravel
-│   ├── app/
-│   │   ├── Http/
-│   │   │   ├── Controllers/
-│   │   │   └── Middleware/
-│   │   ├── Models/
-│   │   └── Services/
-│   ├── database/
-│   │   ├── migrations/
-│   │   └── seeders/
-│   ├── routes/
-│   │   ├── api.php
-│   │   └── web.php
-│   ├── config/
-│   └── tests/
-│
-├── frontend/                   # Aplicación Vue.js
-│   ├── src/
-│   │   ├── components/
-│   │   ├── views/
-│   │   ├── router/
-│   │   ├── store/
-│   │   └── assets/
-│   ├── public/
-│   └── package.json
-│
-├── docs/                       # Documentación
-│   ├── API.md
-│   ├── DATABASE.md
-│   └── DEPLOYMENT.md
-│
-├── .gitignore
-├── README.md
-└── docker-compose.yml         # Para desarrollo local
-```
-
----
-
-## 🚀 Instalación y Configuración
-
-### Prerrequisitos
-
-- PHP >= 8.1
+- PHP 8.2+
 - Composer
-- Node.js >= 18.x
-- PostgreSQL >= 14
+- Node.js 18+
+- PostgreSQL 14+
 - Git
 
-### 1. Clonar el repositorio
+## ⚙️ Instalación
 
+### 1️⃣ Clonar el repositorio
 ```bash
-git clone https://github.com/tu-usuario/chayane-erp.git
+git clone https://github.com/TU_USUARIO/chayane-erp.git
 cd chayane-erp
 ```
 
-### 2. Configurar Backend (Laravel)
-
+### 2️⃣ Configurar Backend
 ```bash
 cd backend
+
+# Instalar dependencias
 composer install
-cp .env.example .env
+
+# Copiar archivo de entorno
+copy .env.example .env
+
+# Generar key de aplicación
 php artisan key:generate
-```
 
-Configurar `.env` con credenciales de PostgreSQL:
-```env
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=chayane_db
-DB_USERNAME=tu_usuario
-DB_PASSWORD=tu_password
-```
+# Configurar base de datos en .env
+# DB_DATABASE=chayane_db
+# DB_USERNAME=postgres
+# DB_PASSWORD=tu_password
 
-Ejecutar migraciones:
-```bash
-php artisan migrate --seed
+# Configurar Pusher en .env
+# PUSHER_APP_ID=tu_app_id
+# PUSHER_APP_KEY=tu_app_key
+# PUSHER_APP_SECRET=tu_app_secret
+# PUSHER_APP_CLUSTER=us2
+
+# Crear base de datos
+# Ejecutar en PostgreSQL: CREATE DATABASE chayane_db;
+
+# Ejecutar migraciones
+php artisan migrate
+
+# Ejecutar seeders (datos de prueba)
+php artisan db:seed
+
+# Iniciar servidor
 php artisan serve
 ```
 
-### 3. Configurar Frontend (Vue.js)
-
+### 3️⃣ Configurar Frontend
 ```bash
-cd frontend
+cd ../frontend
+
+# Instalar dependencias
 npm install
+
+# Copiar archivo de entorno
+copy .env.example .env
+
+# Configurar en .env:
+# VITE_API_URL=http://localhost:8000/api
+# VITE_PUSHER_APP_KEY=tu_pusher_key
+# VITE_PUSHER_CLUSTER=us2
+
+# Iniciar servidor de desarrollo
 npm run dev
 ```
 
-### 4. Acceder al sistema
+## 🔑 Usuarios de Prueba
 
-- **Backend API:** http://localhost:8000
-- **Frontend:** http://localhost:5173
+| Email | Password | Rol |
+|-------|----------|-----|
+| admin@chayane.com | 123 | Administrador |
+| gerente@chayane.com | 123 | Gerente |
+| cajero@chayane.com | 123 | Cajero |
+| cocinero@chayane.com | 123 | Cocinero |
 
----
+## 📡 Configurar Pusher
 
-## 👨‍💻 Guía de Contribución
-
-### Estrategia de Branches
-
-```
-main (producción)
-├── develop (desarrollo)
-│   ├── feature/modulo-inventario
-│   ├── feature/modulo-ventas
-│   ├── feature/modulo-reportes
-│   └── feature/modulo-reservas
-```
-
-### Flujo de Trabajo
-
-1. **Crear una rama desde develop:**
-   ```bash
-   git checkout develop
-   git pull origin develop
-   git checkout -b feature/nombre-del-modulo
-   ```
-
-2. **Trabajar en tu módulo:**
-   ```bash
-   git add .
-   git commit -m "feat: descripción del cambio"
-   ```
-
-3. **Subir cambios:**
-   ```bash
-   git push origin feature/nombre-del-modulo
-   ```
-
-4. **Crear Pull Request** en GitHub hacia `develop`
-
-### Convenciones de Commits
-
-- `feat:` Nueva funcionalidad
-- `fix:` Corrección de bug
-- `docs:` Documentación
-- `style:` Formato de código
-- `refactor:` Refactorización
-- `test:` Tests
-- `chore:` Tareas de mantenimiento
-
-### Estándares de Código
-
-#### PHP (PSR-12)
-```php
-<?php
-
-namespace App\Http\Controllers;
-
-class ProductoController extends Controller
-{
-    public function index()
-    {
-        // Código aquí
-    }
-}
-```
-
-#### JavaScript (ESLint)
-```javascript
-export default {
-  name: 'ProductosList',
-  data() {
-    return {
-      productos: []
-    }
-  },
-  methods: {
-    async fetchProductos() {
-      // Código aquí
-    }
-  }
-}
-```
-
----
+1. Crear cuenta en [pusher.com](https://pusher.com)
+2. Crear un nuevo canal (Channels)
+3. Copiar credenciales en `.env` del backend y frontend
+4. El canal `cocina` se crea automáticamente
 
 ## 🗄️ Base de Datos
 
-### Tablas Principales
+### Migraciones importantes:
+- `create_users_table` - Usuarios del sistema
+- `create_roles_table` - Roles y permisos
+- `create_productos_table` - Catálogo de productos
+- `create_ventas_table` - Registro de ventas
+- `create_detalle_ventas_table` - Items de cada venta
+- `add_estado_cocina_to_ventas` - Estados de cocina
 
-- `users` - Usuarios del sistema
-- `roles` - Roles de usuario
-- `productos` - Productos/insumos
-- `categorias` - Categorías de productos
-- `inventario` - Control de stock
-- `ventas` - Registro de ventas
-- `detalle_ventas` - Detalles de cada venta
-- `gastos` - Registro de gastos
-- `cajas` - Cierres de caja
-- `reservas` - Reservas de mesas
-- `mesas` - Mesas del restaurante
-- `notificaciones` - Sistema de notificaciones
+### Seeders:
+- `RoleSeeder` - Crea roles y permisos base
+- `UserSeeder` - Crea usuarios de prueba
+- `CategoriaSeeder` - Categorías de productos
+- `ProductoSeeder` - Productos de ejemplo
 
-Ver diagrama completo en `docs/DATABASE.md`
+## 📱 Módulos del Sistema
 
----
+### 🏠 Dashboard
+- Estadísticas generales
+- Ventas del día/mes
+- Productos más vendidos
 
-## 🧪 Testing
+### 🛒 Ventas (POS)
+- Interfaz de punto de venta
+- Cálculo automático de totales
+- Múltiples métodos de pago
+- Asignación de mesas
 
-### Backend (PHPUnit)
-```bash
-cd backend
-php artisan test
-```
+### 👨‍🍳 Cocina
+- Vista de pedidos pendientes
+- Estados: Pendiente → En Preparación → Listo
+- **Notificaciones en tiempo real** cuando llegan nuevos pedidos
+- Toast animado + notificación del sistema + sonido
 
-### Frontend (Vitest)
-```bash
-cd frontend
-npm run test
-```
-
----
-
-## 📝 Asignación de Módulos por Desarrollador
-
-### Desarrollador 1: Inventario + Productos
-- CRUD de productos
+### 📦 Productos
+- CRUD completo
 - Control de stock
 - Categorías
-- Alertas de stock mínimo
 
-### Desarrollador 2: Ventas + Finanzas
-- Registro de ventas
-- Registro de gastos
-- Cierre de caja
-- Reportes financieros
+### 📊 Reportes
+- Ventas por fecha
+- Productos más vendidos
+- Estado de inventario
 
-### Desarrollador 3: Dashboard + Reportes
-- Dashboard ejecutivo
-- Gráficos y KPIs
-- Generación de reportes
-- Exportación PDF/Excel
+## 🔐 Sistema de Permisos
 
-### Desarrollador 4: Web Pública + Reservas
-- Portal web público
-- Sistema de reservas
-- Gestión de mesas
-- Notificaciones
+Los permisos se manejan por rol y módulo con acciones específicas:
+- `can_read` - Ver
+- `can_create` - Crear
+- `can_edit` - Editar
+- `can_delete` - Eliminar
 
----
+## 🐛 Troubleshooting
 
-## 📅 Cronograma (12 semanas)
+### Error de conexión a Pusher
+- Verificar credenciales en `.env`
+- Verificar que `BROADCAST_CONNECTION=pusher`
+- Limpiar caché: `php artisan config:clear`
 
-| Semana | Actividad |
-|--------|-----------|
-| 1-2 | Setup del proyecto y configuración de entornos |
-| 3-4 | Módulo de Autenticación + Inventario |
-| 5-6 | Módulo de Ventas + Finanzas |
-| 7-8 | Dashboard + Reportes |
-| 9-10 | Web Pública + Reservas |
-| 11 | Integración y Testing |
-| 12 | Deploy y Documentación final |
+### Notificaciones no llegan
+- Verificar permisos del navegador
+- Hacer click en la página antes (para activar audio)
+- Verificar consola del navegador (F12)
 
----
+### Error 403 en cocina
+- Verificar permisos en tabla `role_permissions`
+- El cocinero necesita `can_edit=true` en módulo `cocina`
 
-## 🔐 Credenciales por Defecto (Desarrollo)
+## 📝 TODO / Próximas Características
 
-**Administrador:**
-- Usuario: `admin@chayane.com`
-- Password: `admin123`
+- [ ] Módulo de Reservas
+- [ ] Reportes en PDF/Excel
+- [ ] Integración con impresora térmica
+- [ ] App móvil para meseros
+- [ ] Panel de KDS (Kitchen Display System)
 
-**Cajero:**
-- Usuario: `cajero@chayane.com`
-- Password: `cajero123`
+## 👥 Equipo de Desarrollo
 
-**Mesero:**
-- Usuario: `mesero@chayane.com`
-- Password: `mesero123`
-
-> ⚠️ **IMPORTANTE:** Cambiar estas credenciales en producción
-
----
-
-## 📞 Contacto y Soporte
-
-- **Repositorio:** https://github.com/tu-usuario/chayane-erp
-- **Issues:** https://github.com/tu-usuario/chayane-erp/issues
-- **Wiki:** https://github.com/tu-usuario/chayane-erp/wiki
-
----
+- **Desarrollador Principal**: [Tu Nombre]
+- **Proyecto**: Sistema ERP para Restaurante Chayane
 
 ## 📄 Licencia
 
-Este proyecto es desarrollado como parte del curso de Gestión de Proyectos - UPCH
+Este proyecto es privado y confidencial.
 
 ---
 
-## ✅ Checklist de Inicio
-
-- [ ] Clonar repositorio
-- [ ] Instalar dependencias backend
-- [ ] Instalar dependencias frontend
-- [ ] Configurar base de datos PostgreSQL
-- [ ] Ejecutar migraciones
-- [ ] Verificar que backend corre en localhost:8000
-- [ ] Verificar que frontend corre en localhost:5173
-- [ ] Crear tu branch de feature
-- [ ] Leer documentación de tu módulo asignado
-
----
-
-**¡Bienvenido al equipo CHAYANE! 🚀**
+**¿Dudas o problemas?** Contacta al equipo de desarrollo.

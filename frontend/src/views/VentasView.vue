@@ -10,7 +10,7 @@
         <button @click="abrirModalNuevaVenta" class="btn-primary">➕ Nueva Venta</button>
       </div>
 
-      <!-- Estadísticas rápidas -->
+      <!-- Estadísticas rápidas (solo admin y gerente ven totales de dinero) -->
       <div class="stats-grid">
         <div class="stat-card blue">
           <div class="stat-icon">📊</div>
@@ -19,7 +19,7 @@
             <p>Ventas Hoy</p>
           </div>
         </div>
-        <div class="stat-card green">
+        <div v-if="esAdminOGerente" class="stat-card green">
           <div class="stat-icon">💰</div>
           <div class="stat-content">
             <h3>S/ {{ formatNumber(stats.total_hoy || 0) }}</h3>
@@ -33,7 +33,7 @@
             <p>Ventas del Mes</p>
           </div>
         </div>
-        <div class="stat-card orange">
+        <div v-if="esAdminOGerente" class="stat-card orange">
           <div class="stat-icon">💵</div>
           <div class="stat-content">
             <h3>S/ {{ formatNumber(stats.total_mes || 0) }}</h3>
@@ -93,7 +93,7 @@
                   👁️
                 </button>
                 <button
-                  v-if="venta.estado !== 'cancelada'"
+                  v-if="venta.estado !== 'cancelada' && puedeCancelar"
                   @click="cancelarVenta(venta.id)"
                   class="btn-icon btn-cancel"
                   title="Cancelar"
@@ -314,11 +314,16 @@
 import LayoutMain from '@/components/LayoutMain.vue'
 import ventasService from '@/services/ventas'
 import productosService from '@/services/productos'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'VentasView',
   components: {
     LayoutMain,
+  },
+  setup() {
+    const authStore = useAuthStore()
+    return { authStore }
   },
   data() {
     return {
@@ -340,6 +345,13 @@ export default {
     }
   },
   computed: {
+    esAdminOGerente() {
+      const user = this.authStore.user
+      return user?.role_id === 1 || user?.role_id === 2
+    },
+    puedeCancelar() {
+      return this.authStore.canDelete('ventas')
+    },
     calcularSubtotal() {
       return this.formVenta.items.reduce(
         (sum, item) => sum + item.cantidad * item.precio_unitario,
@@ -441,7 +453,8 @@ export default {
         this.cargarDatos()
       } catch (error) {
         console.error('Error al guardar venta:', error)
-        alert('❌ Error al registrar venta')
+        const mensaje = error.response?.data?.message || 'Error al registrar venta'
+        alert('❌ ' + mensaje)
       }
     },
 
@@ -456,6 +469,11 @@ export default {
     },
 
     async cancelarVenta(id) {
+      if (!this.puedeCancelar) {
+        alert('⚠️ No tienes permisos para cancelar ventas')
+        return
+      }
+
       if (!confirm('⚠️ ¿Estás seguro de cancelar esta venta? El stock se devolverá.')) return
 
       try {
@@ -464,7 +482,8 @@ export default {
         this.cargarDatos()
       } catch (error) {
         console.error('Error al cancelar venta:', error)
-        alert('❌ Error al cancelar venta')
+        const mensaje = error.response?.data?.message || 'Error al cancelar venta'
+        alert('❌ ' + mensaje)
       }
     },
 
@@ -495,6 +514,7 @@ export default {
 </script>
 
 <style scoped>
+/* (Todos los estilos se mantienen igual) */
 .ventas-page {
   padding: 30px;
   max-width: 1600px;

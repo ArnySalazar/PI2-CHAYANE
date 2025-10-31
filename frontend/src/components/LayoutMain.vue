@@ -8,35 +8,16 @@
       </div>
 
       <nav class="menu">
-        <router-link to="/dashboard" class="menu-item">
-          <span class="icon">📊</span>
-          <span>Dashboard</span>
+        <router-link
+          v-for="item in menuItems"
+          :key="item.path"
+          :to="item.path"
+          class="menu-item"
+          :class="{ disabled: item.disabled }"
+        >
+          <span class="icon">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
         </router-link>
-
-        <router-link to="/productos" class="menu-item">
-          <span class="icon">📦</span>
-          <span>Productos</span>
-        </router-link>
-
-        <router-link to="/ventas" class="menu-item">
-          <span class="icon">💵</span>
-          <span>Ventas</span>
-        </router-link>
-
-        <div class="menu-item disabled">
-          <span class="icon">🍽️</span>
-          <span>Mesas</span>
-        </div>
-
-        <div class="menu-item disabled">
-          <span class="icon">👥</span>
-          <span>Clientes</span>
-        </div>
-
-        <div class="menu-item disabled">
-          <span class="icon">📈</span>
-          <span>Reportes</span>
-        </div>
       </nav>
 
       <div class="sidebar-footer">
@@ -47,7 +28,7 @@
             <small>{{ userRole }}</small>
           </div>
         </div>
-        <button @click="logout" class="btn-logout-sidebar" title="Cerrar sesión">🚪</button>
+        <button @click="handleLogout" class="btn-logout-sidebar" title="Cerrar sesión">🚪</button>
       </div>
     </aside>
 
@@ -59,35 +40,115 @@
 </template>
 
 <script>
-import authService from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'LayoutMain',
-  data() {
-    return {
-      userName: '',
-      userRole: '',
-      userInitial: 'U',
-    }
+  setup() {
+    const authStore = useAuthStore()
+    return { authStore }
   },
-  mounted() {
-    this.loadUser()
+  computed: {
+    userName() {
+      return this.authStore.userName || 'Admin Sistema'
+    },
+    userRole() {
+      return this.authStore.userRole || 'Administrador'
+    },
+    userInitial() {
+      const name = this.userName || 'A'
+      return name.charAt(0).toUpperCase()
+    },
+    menuItems() {
+      const auth = this.authStore
+
+      // Si no hay permisos cargados, mostrar todos por defecto
+      if (!auth.permissions) {
+        return [
+          { path: '/dashboard', icon: '📊', label: 'Dashboard', show: true },
+          { path: '/productos', icon: '📦', label: 'Productos', show: true },
+          { path: '/insumos', icon: '🥕', label: 'Insumos', show: true },
+          { path: '/ventas', icon: '💵', label: 'Ventas', show: true },
+          { path: '/mesas', icon: '🍽️', label: 'Mesas', show: true },
+          { path: '/cocina', icon: '👨‍🍳', label: 'Cocina', show: true },
+          { path: '/clientes', icon: '👥', label: 'Clientes', show: true },
+          { path: '/reportes', icon: '📈', label: 'Reportes', show: true },
+        ]
+      }
+
+      return [
+        {
+          path: '/dashboard',
+          icon: '📊',
+          label: 'Dashboard',
+          show: auth.canView('dashboard'),
+        },
+        {
+          path: '/productos',
+          icon: '📦',
+          label: 'Productos',
+          show: auth.canView('productos'),
+        },
+        {
+          path: '/insumos',
+          icon: '🥕',
+          label: 'Insumos',
+          show: auth.canView('insumos'),
+        },
+        {
+          path: '/ventas',
+          icon: '💵',
+          label: 'Ventas',
+          show: auth.canView('ventas'),
+        },
+        {
+          path: '/mesas',
+          icon: '🍽️',
+          label: 'Mesas',
+          show: auth.canView('mesas'),
+        },
+        {
+          path: '/cocina',
+          icon: '👨‍🍳',
+          label: 'Cocina',
+          show: auth.canView('cocina'),
+        },
+        {
+          path: '/clientes',
+          icon: '👥',
+          label: 'Clientes',
+          show: auth.canView('clientes'),
+        },
+        {
+          path: '/reportes',
+          icon: '📈',
+          label: 'Reportes',
+          show: auth.canView('reportes'),
+        },
+      ].filter((item) => item.show)
+    },
   },
   methods: {
-    loadUser() {
-      const user = authService.getUser()
-      if (user) {
-        this.userName = user.nombre || 'Usuario'
-        this.userRole = user.rol || 'Usuario'
-        this.userInitial = user.nombre?.charAt(0).toUpperCase() || 'U'
-      }
-    },
-    logout() {
-      if (confirm('¿Cerrar sesión?')) {
-        authService.logout()
+    handleLogout() {
+      if (confirm('¿Estás seguro de cerrar sesión?')) {
+        console.log('Cerrando sesión...')
+
+        // Limpiar store
+        this.authStore.logout()
+
+        // Limpiar localStorage completamente
+        localStorage.clear()
+
+        // Redirigir al login
         this.$router.push('/login')
+
+        console.log('Sesión cerrada, redirigiendo a login...')
       }
     },
+  },
+  mounted() {
+    // Restaurar sesión si existe
+    this.authStore.restoreSession()
   },
 }
 </script>
@@ -164,6 +225,7 @@ export default {
 .menu-item.disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .menu-item .icon {
@@ -197,16 +259,21 @@ export default {
   justify-content: center;
   font-weight: 700;
   font-size: 18px;
+  flex-shrink: 0;
 }
 
 .user-details {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .user-details strong {
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-details small {
@@ -224,11 +291,20 @@ export default {
   cursor: pointer;
   font-size: 16px;
   transition: all 0.3s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-logout-sidebar:hover {
   background: #e74c3c;
   border-color: #e74c3c;
+  transform: scale(1.05);
+}
+
+.btn-logout-sidebar:active {
+  transform: scale(0.95);
 }
 
 /* Main Content */
@@ -262,6 +338,10 @@ export default {
 
   .main-content {
     margin-left: 70px;
+  }
+
+  .user-profile {
+    justify-content: center;
   }
 
   .btn-logout-sidebar {
