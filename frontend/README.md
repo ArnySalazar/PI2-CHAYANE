@@ -1,70 +1,44 @@
-# Frontend - CHAYANE ERP (Vue.js 3)
+# .
 
-## Instalación
+This template should help get you started developing with Vue 3 in Vite.
 
-```bash
-# Instalar dependencias
+## Recommended IDE Setup
+
+[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+
+## Recommended Browser Setup
+
+- Chromium-based browsers (Chrome, Edge, Brave, etc.):
+  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
+  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
+- Firefox:
+  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
+  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+
+## Customize configuration
+
+See [Vite Configuration Reference](https://vite.dev/config/).
+
+## Project Setup
+
+```sh
 npm install
+```
 
-# Configurar variables de entorno
-cp .env.example .env.local
+### Compile and Hot-Reload for Development
 
-# Iniciar servidor de desarrollo
+```sh
 npm run dev
 ```
 
-## URL de desarrollo
-http://localhost:5173
+### Compile and Minify for Production
 
-## Estructura de carpetas (se creará con Vue.js)
-
-```
-frontend/
-├── src/
-│   ├── assets/              ← CSS, imágenes, etc.
-│   ├── components/          ← Componentes reutilizables
-│   │   ├── common/          ← Botones, modales, etc.
-│   │   └── layout/          ← Header, Sidebar, Footer
-│   ├── views/               ← Páginas principales
-│   │   ├── Dashboard/
-│   │   ├── Inventario/
-│   │   ├── Ventas/
-│   │   ├── Reportes/
-│   │   └── Reservas/
-│   ├── router/              ← Configuración de rutas
-│   ├── store/               ← Estado global (Pinia)
-│   ├── services/            ← Llamadas API
-│   ├── App.vue              ← Componente raíz
-│   └── main.js              ← Punto de entrada
-├── public/                  ← Archivos estáticos
-└── index.html
+```sh
+npm run build
 ```
 
-## Instalación de Vue.js (Primera vez)
+### Lint with [ESLint](https://eslint.org/)
 
-Si esta carpeta está vacía, instalar Vue.js:
-
-```bash
-npm create vue@latest .
-# Seleccionar:
-# ✔ Add Vue Router? Yes
-# ✔ Add Pinia? Yes
-# ✔ Add ESLint? Yes
-# El resto: No
-```
-
-## Scripts disponibles
-
-- `npm run dev` - Servidor de desarrollo
-- `npm run build` - Build para producción
-- `npm run preview` - Preview del build
-- `npm run lint` - Linter de código
-
-## Variables de entorno
-
-Crear archivo `.env.local`:
-
-```env
-VITE_API_URL=http://localhost:8000/api
-VITE_APP_NAME=CHAYANE
+```sh
+npm run lint
 ```

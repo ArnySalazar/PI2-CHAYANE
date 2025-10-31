@@ -77,10 +77,6 @@ https://github.com/TU-USUARIO/chayane-erp.git
 - "Abrir en Terminal" o "Git Bash Here"
 - O abre CMD y escribe: `cd ruta\a\chayane-erp-completo`
 
-**Mac/Linux:**
-- Click derecho → "Nuevo terminal aquí"
-- O abre Terminal y escribe: `cd ruta/a/chayane-erp-completo`
-
 ### 3.3 Ejecutar comandos de Git
 
 **Copia y pega estos comandos UNO POR UNO:**
