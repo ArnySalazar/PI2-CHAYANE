@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\VentaController;
+use App\Http\Controllers\Api\GastoController;
+use App\Http\Controllers\Api\ProveedorController;
 
 // ==========================================
 // RUTAS DE PERMISOS
@@ -204,3 +206,16 @@ Route::post('/mesas/{id}/liberar', [App\Http\Controllers\Api\MesaController::cla
     ->middleware('check.permissions:mesas,editar');
 Route::post('/mesas/{id}/transferir', [App\Http\Controllers\Api\MesaController::class, 'transferir'])
     ->middleware('check.permissions:mesas,editar');
+
+    // Gastos
+Route::get('/gastos', [GastoController::class, 'index']);
+Route::post('/gastos', [GastoController::class, 'store']);
+Route::get('/gastos/stats', [GastoController::class, 'stats']);
+Route::get('/gastos/categorias', [GastoController::class, 'categorias']);
+Route::get('/gastos/{id}', [GastoController::class, 'show']);
+Route::put('/gastos/{id}', [GastoController::class, 'update']);
+Route::delete('/gastos/{id}', [GastoController::class, 'destroy']);
+
+// Proveedores
+Route::get('/proveedores', [ProveedorController::class, 'index']);
+Route::post('/proveedores', [ProveedorController::class, 'store']);

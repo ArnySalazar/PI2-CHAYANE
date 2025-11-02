@@ -32,11 +32,13 @@ class NuevoPedidoCocina implements ShouldBroadcastNow
     public function broadcastWith()
     {
         return [
-            'id' => $this->pedido['id'],
-            'numero_venta' => $this->pedido['numero_venta'],
-            'cliente_nombre' => $this->pedido['cliente_nombre'] ?? 'Cliente General',
-            'mesa_id' => $this->pedido['mesa_id'] ?? null,
-            'total_items' => count($this->pedido['detalles'] ?? []),
+            'id' => $this->pedido->id,
+            'numero_venta' => $this->pedido->numero_venta,
+            'cliente_nombre' => $this->pedido->cliente_nombre ?? 'Cliente General',
+            'mesa_id' => $this->pedido->mesa_id ?? null,
+            'fecha' => $this->pedido->fecha,
+            'total' => $this->pedido->total,
+            'estado_cocina' => $this->pedido->estado_cocina,
             'mensaje' => '¡Nuevo pedido en cocina!'
         ];
     }

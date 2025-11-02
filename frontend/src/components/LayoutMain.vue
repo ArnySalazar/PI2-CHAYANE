@@ -69,6 +69,7 @@ export default {
           { path: '/productos', icon: '📦', label: 'Productos', show: true },
           { path: '/insumos', icon: '🥕', label: 'Insumos', show: true },
           { path: '/ventas', icon: '💵', label: 'Ventas', show: true },
+          { path: '/gastos', icon: '💸', label: 'Gastos', show: true },
           { path: '/mesas', icon: '🍽️', label: 'Mesas', show: true },
           { path: '/cocina', icon: '👨‍🍳', label: 'Cocina', show: true },
           { path: '/clientes', icon: '👥', label: 'Clientes', show: true },
@@ -100,6 +101,12 @@ export default {
           icon: '💵',
           label: 'Ventas',
           show: auth.canView('ventas'),
+        },
+        {
+          path: '/gastos',
+          icon: '💸',
+          label: 'Gastos',
+          show: auth.canView('gastos'),
         },
         {
           path: '/mesas',
