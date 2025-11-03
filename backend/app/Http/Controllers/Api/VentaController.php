@@ -10,9 +10,6 @@ use App\Events\NuevoPedidoCocina;
 
 class VentaController extends Controller
 {
-    /**
-     * Listar todas las ventas
-     */
     public function index()
     {
         $ventas = DB::table('ventas')
@@ -26,107 +23,80 @@ class VentaController extends Controller
         return response()->json($ventas);
     }
 
-    /**
-     * Crear nueva venta
-     */
     public function store(Request $request)
     {
         $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.producto_id' => 'required|integer',
-            'items.*.cantidad' => 'required|integer|min:1',
-            'items.*.precio_unitario' => 'required|numeric|min:0',
+            'productos' => 'required|array|min:1',
+            'productos.*.producto_id' => 'required|exists:productos,id',
+            'productos.*.cantidad' => 'required|integer|min:1',
+            'metodo_pago' => 'required|string',
+            'cliente_id' => 'nullable|exists:clientes,id',
+            'cliente_nombre' => 'nullable|string',
+            'mesa_id' => 'nullable|exists:mesas,id',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Calcular totales
-            $subtotal = 0;
-            foreach ($request->items as $item) {
-                $subtotal += $item['cantidad'] * $item['precio_unitario'];
+            $ultimaVenta = DB::table('ventas')->orderBy('id', 'desc')->first();
+            $numeroVenta = 'V-' . str_pad(($ultimaVenta->id ?? 0) + 1, 6, '0', STR_PAD_LEFT);
+
+            $total = 0;
+            foreach ($request->productos as $item) {
+                $producto = DB::table('productos')->where('id', $item['producto_id'])->first();
+                $total += $producto->precio_venta * $item['cantidad'];
             }
-            
-            $descuento = $request->descuento ?? 0;
-            $impuesto = ($subtotal - $descuento) * 0.18; // IGV 18%
-            $total = $subtotal - $descuento + $impuesto;
 
-            // Generar número de venta
-            $ultimaVenta = DB::table('ventas')
-                ->orderBy('id', 'desc')
-                ->first();
-            
-            $numeroVenta = 'V-' . str_pad(($ultimaVenta->id ?? 0) + 1, 8, '0', STR_PAD_LEFT);
+            $igv = $total * 0.18;
+            $subtotal = $total / 1.18;
 
-            // Crear venta
+            $userId = $request->header('X-User-Id', 1);
+
             $ventaId = DB::table('ventas')->insertGetId([
                 'numero_venta' => $numeroVenta,
-                'fecha' => now(),
-                'usuario_id' => 1, // Por ahora usuario fijo
-                'mesa_id' => $request->mesa_id,
+                'cliente_id' => $request->cliente_id,
                 'cliente_nombre' => $request->cliente_nombre ?? 'Cliente General',
-                'cliente_documento' => $request->cliente_documento,
-                'subtotal' => $subtotal,
-                'descuento' => $descuento,
-                'impuesto' => $impuesto,
-                'total' => $total,
-                'metodo_pago' => $request->metodo_pago ?? 'efectivo',
+                'usuario_id' => $userId,
+                'mesa_id' => $request->mesa_id,
+                'fecha' => now(),
+                'subtotal' => round($subtotal, 2),
+                'impuesto' => round($igv, 2),
+                'total' => round($total, 2),
+                'metodo_pago' => $request->metodo_pago,
                 'estado' => 'completada',
                 'estado_cocina' => 'pendiente',
-                'observaciones' => $request->observaciones,
+                'notas_cocina' => $request->notas_cocina ?? null,
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
 
-            // Crear detalles y actualizar stock
-            $detallesArray = [];
-            
-            foreach ($request->items as $item) {
-                // Insertar detalle
+            foreach ($request->productos as $item) {
+                $producto = DB::table('productos')->where('id', $item['producto_id'])->first();
+                
                 DB::table('detalle_ventas')->insert([
                     'venta_id' => $ventaId,
                     'producto_id' => $item['producto_id'],
                     'cantidad' => $item['cantidad'],
-                    'precio_unitario' => $item['precio_unitario'],
-                    'subtotal' => $item['cantidad'] * $item['precio_unitario'],
-                    'created_at' => now()
+                    'precio_unitario' => $producto->precio_venta,
+                    'subtotal' => $producto->precio_venta * $item['cantidad'],
+                    'created_at' => now(),
+                    //'updated_at' => now()
                 ]);
 
-                // Actualizar stock del producto
                 DB::table('productos')
                     ->where('id', $item['producto_id'])
                     ->decrement('stock_actual', $item['cantidad']);
-
-                // Guardar para el evento
-                $producto = DB::table('productos')->where('id', $item['producto_id'])->first();
-                $detallesArray[] = [
-                    'producto_nombre' => $producto->nombre,
-                    'cantidad' => $item['cantidad']
-                ];
             }
 
             DB::commit();
 
-            // 🔔 DISPARAR EVENTO DE NOTIFICACIÓN A COCINA
-            Log::info('🔔 A punto de disparar evento NuevoPedidoCocina', [
-                'venta_id' => $ventaId,
-                'numero_venta' => $numeroVenta,
-                'cliente' => $request->cliente_nombre ?? 'Cliente General',
-                'detalles_count' => count($detallesArray)
-            ]);
-
-            event(new NuevoPedidoCocina([
-                'id' => $ventaId,
-                'numero_venta' => $numeroVenta,
-                'cliente_nombre' => $request->cliente_nombre ?? 'Cliente General',
-                'mesa_id' => $request->mesa_id ?? null,
-                'detalles' => $detallesArray
-            ]));
-
-            Log::info('✅ Evento NuevoPedidoCocina disparado');
-
-            // Obtener venta completa con detalles
-            $venta = $this->getVentaCompleta($ventaId);
+            $venta = DB::table('ventas')->where('id', $ventaId)->first();
+            
+            try {
+                event(new NuevoPedidoCocina($venta));
+            } catch (\Exception $e) {
+                Log::warning('Error al enviar notificación: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'message' => 'Venta registrada exitosamente',
@@ -136,42 +106,28 @@ class VentaController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             
-            Log::error('❌ Error al crear venta', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
             return response()->json([
                 'message' => 'Error al registrar venta',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine()
             ], 500);
         }
     }
 
-    /**
-     * Mostrar una venta específica con sus detalles
-     */
     public function show($id)
     {
         $venta = $this->getVentaCompleta($id);
 
         if (!$venta) {
-            return response()->json([
-                'message' => 'Venta no encontrada'
-            ], 404);
+            return response()->json(['message' => 'Venta no encontrada'], 404);
         }
 
         return response()->json($venta);
     }
 
-    /**
-     * Obtener venta con detalles
-     */
     private function getVentaCompleta($id)
     {
-        $venta = DB::table('ventas')
-            ->where('id', $id)
-            ->first();
+        $venta = DB::table('ventas')->where('id', $id)->first();
 
         if (!$venta) {
             return null;
@@ -192,9 +148,6 @@ class VentaController extends Controller
         return $venta;
     }
 
-    /**
-     * Cancelar venta (devuelve stock)
-     */
     public function cancel($id)
     {
         try {
@@ -203,21 +156,14 @@ class VentaController extends Controller
             $venta = DB::table('ventas')->where('id', $id)->first();
 
             if (!$venta) {
-                return response()->json([
-                    'message' => 'Venta no encontrada'
-                ], 404);
+                return response()->json(['message' => 'Venta no encontrada'], 404);
             }
 
             if ($venta->estado === 'cancelada') {
-                return response()->json([
-                    'message' => 'La venta ya está cancelada'
-                ], 400);
+                return response()->json(['message' => 'La venta ya está cancelada'], 400);
             }
 
-            // Devolver stock de productos
-            $detalles = DB::table('detalle_ventas')
-                ->where('venta_id', $id)
-                ->get();
+            $detalles = DB::table('detalle_ventas')->where('venta_id', $id)->get();
 
             foreach ($detalles as $detalle) {
                 DB::table('productos')
@@ -225,19 +171,13 @@ class VentaController extends Controller
                     ->increment('stock_actual', $detalle->cantidad);
             }
 
-            // Actualizar estado de venta
             DB::table('ventas')
                 ->where('id', $id)
-                ->update([
-                    'estado' => 'cancelada',
-                    'updated_at' => now()
-                ]);
+                ->update(['estado' => 'cancelada', 'updated_at' => now()]);
 
             DB::commit();
 
-            return response()->json([
-                'message' => 'Venta cancelada exitosamente'
-            ]);
+            return response()->json(['message' => 'Venta cancelada exitosamente']);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -248,9 +188,6 @@ class VentaController extends Controller
         }
     }
 
-    /**
-     * Estadísticas de ventas
-     */
     public function stats()
     {
         $hoy = date('Y-m-d');
