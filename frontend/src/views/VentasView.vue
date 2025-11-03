@@ -470,24 +470,20 @@ export default {
     }
   },
   computed: {
-    esAdminOGerente() {
-      const user = this.authStore.user
-      return user?.role_id === 1 || user?.role_id === 2
-    },
-    puedeCancelar() {
-      return this.authStore.canDelete('ventas')
-    },
-    calcularSubtotal() {
+    calcularTotal() {
+      // El total es la suma de los precios (que ya incluyen IGV)
       return this.formVenta.items.reduce(
         (sum, item) => sum + item.cantidad * item.precio_unitario,
         0,
       )
     },
-    calcularIGV() {
-      return this.calcularSubtotal * 0.18
+    calcularSubtotal() {
+      // El subtotal es el total sin IGV (dividir entre 1.18)
+      return this.calcularTotal / 1.18
     },
-    calcularTotal() {
-      return this.calcularSubtotal + this.calcularIGV
+    calcularIGV() {
+      // El IGV es el 18% del subtotal
+      return this.calcularSubtotal * 0.18
     },
   },
   mounted() {
