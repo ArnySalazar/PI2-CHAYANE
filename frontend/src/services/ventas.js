@@ -17,7 +17,7 @@ export default {
   },
 
   async cancel(id) {
-    const response = await api.post(`/ventas/${id}/cancel`)
+    const response = await api.put(`/ventas/${id}/cancel`)
     return response.data
   },
 

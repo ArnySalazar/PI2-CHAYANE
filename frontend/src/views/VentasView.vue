@@ -15,7 +15,7 @@
         <div class="stat-card blue">
           <div class="stat-icon">📊</div>
           <div class="stat-content">
-            <h3>{{ stats.ventas_hoy || 0 }}</h3>
+            <h3>{{ stats.total_hoy || 0 }}</h3>
             <p>Ventas Hoy</p>
           </div>
         </div>
@@ -29,7 +29,7 @@
         <div class="stat-card purple">
           <div class="stat-icon">📅</div>
           <div class="stat-content">
-            <h3>{{ stats.ventas_mes || 0 }}</h3>
+            <h3>{{ stats.total_mes || 0 }}</h3>
             <p>Ventas del Mes</p>
           </div>
         </div>
@@ -78,7 +78,7 @@
                 <span class="numero-venta">{{ venta.numero_venta }}</span>
               </td>
               <td>{{ formatDate(venta.fecha) }}</td>
-              <td>{{ venta.cliente_nombre }}</td>
+              <td>{{ venta.cliente_nombre || 'Cliente General' }}</td>
               <td class="text-center">
                 <span class="badge-items">{{ venta.total_items }}</span>
               </td>
@@ -90,7 +90,7 @@
               </td>
               <td class="actions">
                 <button @click="verDetalle(venta.id)" class="btn-icon btn-view" title="Ver detalle">
-                  👁️
+                  👁
                 </button>
                 <button
                   v-if="venta.estado !== 'cancelada' && puedeCancelar"
@@ -117,23 +117,71 @@
           <form @submit.prevent="guardarVenta" class="modal-body">
             <!-- Datos del cliente -->
             <div class="section">
-              <h3>👤 Datos del Cliente</h3>
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Nombre:</label>
-                  <input
-                    v-model="formVenta.cliente_nombre"
-                    type="text"
-                    placeholder="Cliente General"
-                  />
+              <h3>👤 Cliente</h3>
+
+              <!-- Toggle para activar búsqueda de cliente -->
+              <div class="cliente-toggle">
+                <label class="checkbox-label">
+                  <input type="checkbox" v-model="requiereCliente" />
+                  <span>¿Asociar cliente a esta venta?</span>
+                </label>
+              </div>
+
+              <!-- Si NO requiere cliente -->
+              <div v-if="!requiereCliente" class="cliente-general-info">
+                <p>✅ Venta como <strong>"Cliente General"</strong></p>
+                <small>No se asociará a ningún cliente específico</small>
+              </div>
+
+              <!-- Si requiere cliente -->
+              <div v-if="requiereCliente" class="cliente-form">
+                <!-- Cliente seleccionado -->
+                <div v-if="clienteSeleccionado" class="cliente-selected">
+                  <div class="selected-info">
+                    <span class="check-icon">✅</span>
+                    <div>
+                      <strong>{{ clienteSeleccionado.nombre_completo }}</strong>
+                      <small v-if="clienteSeleccionado.numero_documento">
+                        {{ clienteSeleccionado.numero_documento }}
+                      </small>
+                    </div>
+                  </div>
+                  <button type="button" @click="limpiarCliente" class="btn-clear">✕ Cambiar</button>
                 </div>
-                <div class="form-group">
-                  <label>Documento:</label>
-                  <input
-                    v-model="formVenta.cliente_documento"
-                    type="text"
-                    placeholder="DNI/RUC (opcional)"
-                  />
+
+                <!-- Buscar cliente existente -->
+                <div v-else>
+                  <!-- Buscador -->
+                  <div class="buscar-cliente">
+                    <input
+                      v-model="busquedaCliente"
+                      @input="buscarClientes"
+                      type="text"
+                      placeholder="🔍 Buscar por nombre o documento..."
+                      class="input-buscar"
+                    />
+                  </div>
+
+                  <!-- Resultados de búsqueda -->
+                  <div v-if="clientesFiltrados.length > 0" class="resultados-busqueda">
+                    <div
+                      v-for="cliente in clientesFiltrados"
+                      :key="cliente.id"
+                      @click="seleccionarCliente(cliente)"
+                      class="resultado-item"
+                    >
+                      <strong>{{ cliente.nombre_completo }}</strong>
+                      <small v-if="cliente.numero_documento">
+                        {{ cliente.numero_documento }}
+                      </small>
+                    </div>
+                  </div>
+
+                  <!-- Mensaje si no hay resultados -->
+                  <div v-if="busquedaCliente && clientesFiltrados.length === 0" class="no-resultados">
+                    <p>❌ No se encontraron clientes</p>
+                    <small>El cliente debe estar previamente registrado en el sistema</small>
+                  </div>
                 </div>
               </div>
             </div>
@@ -147,7 +195,7 @@
                 <select v-model="productoSeleccionado" class="select-producto">
                   <option value="">Seleccionar producto...</option>
                   <option v-for="prod in productos" :key="prod.id" :value="prod">
-                    {{ prod.nombre }} - S/ {{ prod.precio }} (Stock: {{ prod.stock }})
+                    {{ prod.nombre }} - S/ {{ prod.precio }} (Stock: {{ prod.stock_actual }})
                   </option>
                 </select>
                 <input
@@ -187,7 +235,7 @@
                       <td>S/ {{ formatNumber(item.cantidad * item.precio_unitario) }}</td>
                       <td>
                         <button type="button" @click="eliminarItem(index)" class="btn-remove">
-                          🗑️
+                          🗑
                         </button>
                       </td>
                     </tr>
@@ -261,7 +309,7 @@
               </div>
               <div class="info-row">
                 <strong>Cliente:</strong>
-                <span>{{ ventaDetalle.cliente_nombre }}</span>
+                <span>{{ ventaDetalle.cliente_nombre || 'Cliente General' }}</span>
               </div>
               <div class="info-row">
                 <strong>Método de Pago:</strong>
@@ -296,7 +344,7 @@
               </div>
               <div class="total-row">
                 <span>IGV:</span>
-                <strong>S/ {{ formatNumber(ventaDetalle.impuesto) }}</strong>
+                <strong>S/ {{ formatNumber(ventaDetalle.impuesto || 0) }}</strong>
               </div>
               <div class="total-row total-final">
                 <span>TOTAL:</span>
@@ -314,6 +362,7 @@
 import LayoutMain from '@/components/LayoutMain.vue'
 import ventasService from '@/services/ventas'
 import productosService from '@/services/productos'
+import api from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 
 export default {
@@ -329,6 +378,7 @@ export default {
     return {
       ventas: [],
       productos: [],
+      clientes: [],
       stats: {},
       loading: false,
       showModalVenta: false,
@@ -336,9 +386,15 @@ export default {
       ventaDetalle: null,
       productoSeleccionado: '',
       cantidadSeleccionada: 1,
+
+      // Cliente
+      requiereCliente: false,
+      busquedaCliente: '',
+      clientesFiltrados: [],
+      clienteSeleccionado: null,
+
       formVenta: {
-        cliente_nombre: 'Cliente General',
-        cliente_documento: '',
+        cliente_id: null,
         metodo_pago: 'efectivo',
         items: [],
       },
@@ -346,23 +402,22 @@ export default {
   },
   computed: {
     esAdminOGerente() {
-      const user = this.authStore.user
-      return user?.role_id === 1 || user?.role_id === 2
+      return this.authStore.user?.rol === 'admin' || this.authStore.user?.rol === 'gerente'
     },
     puedeCancelar() {
-      return this.authStore.canDelete('ventas')
-    },
-    calcularSubtotal() {
-      return this.formVenta.items.reduce(
-        (sum, item) => sum + item.cantidad * item.precio_unitario,
-        0,
-      )
-    },
-    calcularIGV() {
-      return this.calcularSubtotal * 0.18
+      return this.authStore.user?.rol === 'admin' || this.authStore.user?.rol === 'gerente'
     },
     calcularTotal() {
-      return this.calcularSubtotal + this.calcularIGV
+      return this.formVenta.items.reduce(
+        (sum, item) => sum + item.cantidad * item.precio_unitario,
+        0
+      )
+    },
+    calcularSubtotal() {
+      return parseFloat((this.calcularTotal / 1.18).toFixed(2))
+    },
+    calcularIGV() {
+      return parseFloat((this.calcularSubtotal * 0.18).toFixed(2))
     },
   },
   mounted() {
@@ -372,7 +427,12 @@ export default {
     async cargarDatos() {
       this.loading = true
       try {
-        await Promise.all([this.cargarVentas(), this.cargarProductos(), this.cargarStats()])
+        await Promise.all([
+          this.cargarVentas(),
+          this.cargarProductos(),
+          this.cargarStats(),
+          this.cargarClientes(),
+        ])
       } finally {
         this.loading = false
       }
@@ -403,15 +463,60 @@ export default {
       }
     },
 
+    async cargarClientes() {
+      try {
+        const response = await api.get('/clientes')
+        this.clientes = response.data
+      } catch (error) {
+        console.error('Error al cargar clientes:', error)
+      }
+    },
+
+    // Buscar clientes mientras escribe
+    buscarClientes() {
+      if (!this.busquedaCliente || this.busquedaCliente.length < 2) {
+        this.clientesFiltrados = []
+        return
+      }
+
+      const busqueda = this.busquedaCliente.toLowerCase()
+      this.clientesFiltrados = this.clientes
+        .filter(
+          (cliente) =>
+            cliente.nombre_completo.toLowerCase().includes(busqueda) ||
+            (cliente.numero_documento && cliente.numero_documento.includes(busqueda)),
+        )
+        .slice(0, 5)
+    },
+
+    // Seleccionar cliente de la lista
+    seleccionarCliente(cliente) {
+      this.clienteSeleccionado = cliente
+      // No necesitas guardar esto en formVenta, lo enviaremos directamente
+      this.clientesFiltrados = []
+      this.busquedaCliente = ''
+    },
+
+    // Limpiar selección de cliente
+    limpiarCliente() {
+      this.clienteSeleccionado = null
+      this.formVenta.cliente_id = null
+      this.busquedaCliente = ''
+      this.clientesFiltrados = []
+    },
+
     abrirModalNuevaVenta() {
       this.formVenta = {
-        cliente_nombre: 'Cliente General',
-        cliente_documento: '',
+        cliente_id: null,
         metodo_pago: 'efectivo',
         items: [],
       }
       this.productoSeleccionado = ''
       this.cantidadSeleccionada = 1
+      this.requiereCliente = false
+      this.clienteSeleccionado = null
+      this.busquedaCliente = ''
+      this.clientesFiltrados = []
       this.showModalVenta = true
     },
 
@@ -420,8 +525,9 @@ export default {
 
       const producto = this.productoSeleccionado
 
-      if (this.cantidadSeleccionada > producto.stock) {
-        alert(`Stock insuficiente. Disponible: ${producto.stock}`)
+      // ✅ CORREGIDO: Template literal con backticks
+      if (this.cantidadSeleccionada > producto.stock_actual) {
+        alert(`Stock insuficiente. Disponible: ${producto.stock_actual}`)
         return
       }
 
@@ -447,14 +553,50 @@ export default {
       }
 
       try {
-        await ventasService.create(this.formVenta)
+        // ✅ ESTRUCTURA CORRECTA para el controller
+        const ventaData = {
+          metodo_pago: this.formVenta.metodo_pago,
+          // Los totales los calcula el backend, no los envíes
+          // subtotal: this.calcularSubtotal,
+          // impuesto: this.calcularIGV, 
+          // total: this.calcularTotal,
+          items: this.formVenta.items.map((item) => ({
+            producto_id: item.producto_id,
+            cantidad: item.cantidad,
+            precio_unitario: item.precio_unitario,
+          })),
+        }
+
+        // ✅ AGREGAR DATOS DEL CLIENTE según lo que espera el backend
+        if (this.clienteSeleccionado) {
+          ventaData.cliente_id = this.clienteSeleccionado.id // Para la relación
+          ventaData.cliente_nombre = this.clienteSeleccionado.nombre_completo // Para mostrar
+          if (this.clienteSeleccionado.numero_documento) {
+            ventaData.cliente_documento = this.clienteSeleccionado.numero_documento
+          }
+        } else {
+          ventaData.cliente_nombre = 'Cliente General'
+        }
+
+        console.log('📤 ENVIANDO DATOS:', JSON.stringify(ventaData, null, 2))
+
+        const response = await ventasService.create(ventaData)
+        console.log('✅ RESPUESTA:', response)
+        
         alert('✅ Venta registrada exitosamente')
         this.cerrarModal()
         this.cargarDatos()
       } catch (error) {
-        console.error('Error al guardar venta:', error)
-        const mensaje = error.response?.data?.message || 'Error al registrar venta'
-        alert('❌ ' + mensaje)
+        console.error('❌ Error:', error)
+        
+        if (error.response?.data?.errors) {
+          console.log('🔍 Errores:', error.response.data.errors)
+          const errores = Object.values(error.response.data.errors).flat()
+          alert('❌ Errores:\n• ' + errores.join('\n• '))
+        } else {
+          const mensaje = error.response?.data?.message || 'Error al registrar venta'
+          alert('❌ ' + mensaje)
+        }
       }
     },
 
@@ -470,11 +612,11 @@ export default {
 
     async cancelarVenta(id) {
       if (!this.puedeCancelar) {
-        alert('⚠️ No tienes permisos para cancelar ventas')
+        alert('⚠ No tienes permisos para cancelar ventas')
         return
       }
 
-      if (!confirm('⚠️ ¿Estás seguro de cancelar esta venta? El stock se devolverá.')) return
+      if (!confirm('⚠ ¿Estás seguro de cancelar esta venta? El stock se devolverá.')) return
 
       try {
         await ventasService.cancel(id)
@@ -514,7 +656,7 @@ export default {
 </script>
 
 <style scoped>
-/* (Todos los estilos se mantienen igual) */
+/* Tus estilos existentes se mantienen igual */
 .ventas-page {
   padding: 30px;
   max-width: 1600px;
@@ -868,6 +1010,174 @@ export default {
 .form-group select:focus {
   outline: none;
   border-color: #27ae60;
+}
+
+/* Cliente Toggle */
+.cliente-toggle {
+  margin-bottom: 20px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #2c3e50;
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.cliente-general-info {
+  background: #e8f5e9;
+  border-left: 4px solid #27ae60;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.cliente-general-info p {
+  margin: 0 0 5px 0;
+  color: #27ae60;
+  font-size: 14px;
+}
+
+.cliente-general-info small {
+  color: #66bb6a;
+  font-size: 12px;
+}
+
+/* Cliente Form */
+.cliente-form {
+  margin-top: 15px;
+}
+
+.cliente-selected {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #e3f2fd;
+  border: 2px solid #2196f3;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.selected-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.check-icon {
+  font-size: 24px;
+}
+
+.selected-info strong {
+  display: block;
+  color: #1565c0;
+  font-size: 15px;
+}
+
+.selected-info small {
+  display: block;
+  color: #1976d2;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.btn-clear {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-clear:hover {
+  background: #c0392b;
+}
+
+/* Buscador */
+.buscar-cliente {
+  margin-bottom: 15px;
+}
+
+.input-buscar {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.input-buscar:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+/* Resultados de búsqueda */
+.resultados-busqueda {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.resultado-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.resultado-item:last-child {
+  border-bottom: none;
+}
+
+.resultado-item:hover {
+  background: #f8f9fa;
+}
+
+.resultado-item strong {
+  display: block;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.resultado-item small {
+  display: block;
+  color: #7f8c8d;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* No resultados */
+.no-resultados {
+  text-align: center;
+  padding: 20px;
+  color: #e74c3c;
+  background: #fdf2f2;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.no-resultados p {
+  margin: 0 0 5px 0;
+  font-weight: 600;
+}
+
+.no-resultados small {
+  color: #c0392b;
+  font-size: 12px;
 }
 
 /* Agregar producto */
