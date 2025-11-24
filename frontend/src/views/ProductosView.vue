@@ -5,7 +5,7 @@
       <div class="page-header">
         <div>
           <h1>📦 Gestión de Productos</h1>
-          <p class="subtitle">Administra el inventario de productos</p>
+          <p class="subtitle">Administra el inventario y precios del menú</p>
         </div>
         <button v-if="puedeCrear" @click="abrirModalNuevo" class="btn-primary">
           ➕ Nuevo Producto
@@ -53,7 +53,7 @@
                 </small>
               </td>
               <td>
-                <span class="badge-categoria">{{ producto.categoria_nombre }}</span>
+                <span class="badge-categoria">{{ producto.categoria_descripcion }}</span>
               </td>
               <td class="precio">S/ {{ producto.precio }}</td>
               <td>
@@ -119,7 +119,7 @@
                 <select v-model="form.categoria_id" required>
                   <option value="">Seleccionar categoría...</option>
                   <option v-for="cat in categorias" :key="cat.id" :value="cat.id">
-                    {{ cat.nombre }}
+                    {{ cat.descripcion }}
                   </option>
                 </select>
               </div>

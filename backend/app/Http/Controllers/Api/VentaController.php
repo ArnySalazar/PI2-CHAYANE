@@ -266,7 +266,7 @@ class VentaController extends Controller
             'total_hoy' => DB::table('ventas')
                 ->whereDate('fecha', $hoy)
                 ->where('estado', 'completada')
-                ->sum('total') ?? 0,
+                ->sum('subtotal') ?? 0,
             
             'ventas_mes' => DB::table('ventas')
                 ->whereYear('fecha', date('Y'))
@@ -278,7 +278,7 @@ class VentaController extends Controller
                 ->whereYear('fecha', date('Y'))
                 ->whereMonth('fecha', date('m'))
                 ->where('estado', 'completada')
-                ->sum('total') ?? 0,
+                ->sum('subtotal') ?? 0,
 
             'productos_mas_vendidos' => DB::table('detalle_ventas')
                 ->join('productos', 'detalle_ventas.producto_id', '=', 'productos.id')

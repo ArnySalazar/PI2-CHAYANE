@@ -82,7 +82,7 @@
               <td class="text-center">
                 <span class="badge-items">{{ venta.total_items }}</span>
               </td>
-              <td class="total">S/ {{ formatNumber(venta.total) }}</td>
+              <td class="total">S/ {{ formatNumber(venta.subtotal) }}</td>
               <td>
                 <span class="badge-estado" :class="{ cancelada: venta.estado === 'cancelada' }">
                   {{ venta.estado }}
@@ -223,7 +223,7 @@
                       <th>Producto</th>
                       <th>Precio</th>
                       <th>Cantidad</th>
-                      <th>Subtotal</th>
+                      <th>Total</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -250,14 +250,6 @@
 
             <!-- Totales -->
             <div v-if="formVenta.items.length > 0" class="section totales">
-              <div class="total-row">
-                <span>Subtotal:</span>
-                <strong>S/ {{ formatNumber(calcularSubtotal) }}</strong>
-              </div>
-              <div class="total-row">
-                <span>IGV (18%):</span>
-                <strong>S/ {{ formatNumber(calcularIGV) }}</strong>
-              </div>
               <div class="total-row total-final">
                 <span>TOTAL:</span>
                 <strong>S/ {{ formatNumber(calcularTotal) }}</strong>
@@ -270,9 +262,9 @@
                 <div class="form-group">
                   <label>Método de Pago:</label>
                   <select v-model="formVenta.metodo_pago">
-                    <option value="efectivo">💵 Efectivo</option>
-                    <option value="tarjeta">💳 Tarjeta</option>
-                    <option value="yape">📱 Yape/Plin</option>
+                    <option value="Efectivo">💵 Efectivo</option>
+                    <option value="Tarjeta">💳 Tarjeta</option>
+                    <option value="Yape">📱 Yape/Plin</option>
                   </select>
                 </div>
               </div>
@@ -338,17 +330,9 @@
             </table>
 
             <div class="totales">
-              <div class="total-row">
-                <span>Subtotal:</span>
-                <strong>S/ {{ formatNumber(ventaDetalle.subtotal) }}</strong>
-              </div>
-              <div class="total-row">
-                <span>IGV:</span>
-                <strong>S/ {{ formatNumber(ventaDetalle.impuesto || 0) }}</strong>
-              </div>
               <div class="total-row total-final">
                 <span>TOTAL:</span>
-                <strong>S/ {{ formatNumber(ventaDetalle.total) }}</strong>
+                <strong>S/ {{ formatNumber(ventaDetalle.subtotal) }}</strong>
               </div>
             </div>
           </div>
@@ -414,7 +398,7 @@ export default {
       )
     },
     calcularSubtotal() {
-      return parseFloat((this.calcularTotal / 1.18).toFixed(2))
+      return parseFloat((this.calcularTotal).toFixed(2))
     },
     calcularIGV() {
       return parseFloat((this.calcularSubtotal * 0.18).toFixed(2))

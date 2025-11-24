@@ -19,8 +19,8 @@ class InsumoController extends Controller
                 'insumos.*',
                 'categorias_insumos.nombre as categoria_nombre',
                 DB::raw('CASE 
-                    WHEN insumos.stock_actual < insumos.stock_minimo THEN \'bajo\'
                     WHEN insumos.stock_actual = 0 THEN \'agotado\'
+                    WHEN insumos.stock_actual < insumos.stock_minimo THEN \'bajo\'
                     ELSE \'ok\'
                 END as estado_stock')
             )
@@ -173,23 +173,20 @@ class InsumoController extends Controller
     }
 
     /**
-     * Eliminar insumo (soft delete)
+     * Eliminar insumo PERMANENTEMENTE (hard delete)
      */
     public function destroy($id)
     {
         try {
             $deleted = DB::table('insumos')
                 ->where('id', $id)
-                ->update([
-                    'estado' => false,
-                    'updated_at' => now()
-                ]);
+                ->delete(); // ← Esto elimina permanentemente
 
             if (!$deleted) {
                 return response()->json(['message' => 'Insumo no encontrado'], 404);
             }
 
-            return response()->json(['message' => 'Insumo eliminado exitosamente']);
+            return response()->json(['message' => 'Insumo eliminado permanentemente']);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -210,7 +207,7 @@ class InsumoController extends Controller
             'cantidad' => 'required|numeric|min:0.01',
             'motivo' => 'required|string',
             'descripcion' => 'nullable|string',
-            'precio_unitario' => 'nullable|numeric|min:0',
+            'precio_compra' => 'nullable|numeric|min:0',
             'referencia' => 'nullable|string|max:100'
         ]);
 
@@ -226,7 +223,7 @@ class InsumoController extends Controller
 
             $stockAnterior = $insumo->stock_actual;
             $cantidad = $request->cantidad;
-
+            
             // Calcular nuevo stock
             if ($request->tipo_movimiento === 'entrada') {
                 $stockNuevo = $stockAnterior + $cantidad;
@@ -240,13 +237,29 @@ class InsumoController extends Controller
                 $stockNuevo = $stockAnterior - $cantidad;
             }
 
-            // Actualizar stock del insumo
+            // Actualizar precio solo si es ENTRADA y se proporcionó precio_compra
+            $datosActualizacion = [
+                'stock_actual' => $stockNuevo,
+                'updated_at' => now()
+            ];
+
+            if ($request->tipo_movimiento === 'entrada') {
+                $precioCompra = $request->precio_compra ?? $insumo->precio_compra;
+                if ($request->precio_compra) {
+                    $datosActualizacion['precio_compra'] = $request->precio_compra;
+                }
+            } else {
+                // Para salidas: siempre usar el precio actual del insumo
+                $precioCompra = $this->calcularPrecioSalida($request->insumo_id, $cantidad);
+            }
+
+            // Actualizar insumo
             DB::table('insumos')
                 ->where('id', $request->insumo_id)
-                ->update([
-                    'stock_actual' => $stockNuevo,
-                    'updated_at' => now()
-                ]);
+                ->update($datosActualizacion);
+
+            // Usar el precio proporcionado o el actual del insumo
+            $precioCompra = $request->precio_compra ?? $insumo->precio_compra;
 
             // Registrar movimiento
             $movimientoId = DB::table('movimientos_inventario')->insertGetId([
@@ -257,8 +270,8 @@ class InsumoController extends Controller
                 'descripcion' => $request->descripcion,
                 'stock_anterior' => $stockAnterior,
                 'stock_nuevo' => $stockNuevo,
-                'precio_unitario' => $request->precio_unitario,
-                'total' => ($request->precio_unitario ?? 0) * $cantidad,
+                'precio_unitario' => $precioCompra,
+                'total' => $precioCompra * $cantidad,
                 'usuario_id' => 1, // Temporal
                 'referencia' => $request->referencia,
                 'fecha' => now(),
@@ -267,14 +280,9 @@ class InsumoController extends Controller
 
             DB::commit();
 
+            // Obtener movimiento registrado (VERSIÓN SIMPLE)
             $movimiento = DB::table('movimientos_inventario')
-                ->join('insumos', 'movimientos_inventario.insumo_id', '=', 'insumos.id')
-                ->select(
-                    'movimientos_inventario.*',
-                    'insumos.nombre as insumo_nombre',
-                    'insumos.codigo as insumo_codigo'
-                )
-                ->where('movimientos_inventario.id', $movimientoId)
+                ->where('id', $movimientoId)
                 ->first();
 
             return response()->json([
@@ -292,12 +300,31 @@ class InsumoController extends Controller
     }
 
     /**
+     * Calcular precio para salidas (precio de la última entrada)
+     */
+    private function calcularPrecioSalida($insumoId, $cantidadSalida)
+    {
+        $ultimaEntrada = DB::table('movimientos_inventario')
+            ->where('insumo_id', $insumoId)
+            ->where('tipo_movimiento', 'entrada')
+            ->orderBy('fecha', 'desc')
+            ->first(['precio_unitario']);
+        
+        return $ultimaEntrada->precio_unitario ?? 0;
+    }
+
+    /**
      * Listar movimientos de un insumo
      */
     public function movimientos($insumoId)
     {
         $movimientos = DB::table('movimientos_inventario')
-            ->where('insumo_id', $insumoId)
+            ->join('insumos', 'movimientos_inventario.insumo_id', '=', 'insumos.id')
+            ->where('movimientos_inventario.insumo_id', $insumoId)
+            ->select(
+                'movimientos_inventario.*',
+                'insumos.precio_compra as precio_insumo' // ← Agregar esto
+            )
             ->orderBy('fecha', 'desc')
             ->get();
 
@@ -329,6 +356,7 @@ class InsumoController extends Controller
 
             'insumos_stock_bajo' => DB::table('insumos')
                 ->where('estado', true)
+                ->where('stock_actual', '>', 0)
                 ->whereRaw('stock_actual < stock_minimo')
                 ->count(),
 
@@ -337,9 +365,19 @@ class InsumoController extends Controller
                 ->where('stock_actual', 0)
                 ->count(),
 
-            'valor_inventario' => DB::table('insumos')
-                ->where('estado', true)
-                ->selectRaw('SUM(stock_actual * precio_compra) as valor')
+            'valor_inventario' => DB::table('movimientos_inventario')
+                ->join('insumos', 'movimientos_inventario.insumo_id', '=', 'insumos.id')
+                ->where('insumos.estado', true)
+                ->selectRaw('
+                    SUM(
+                        CASE 
+                            WHEN movimientos_inventario.tipo_movimiento = \'entrada\' 
+                            THEN movimientos_inventario.cantidad * movimientos_inventario.precio_unitario
+                            WHEN movimientos_inventario.tipo_movimiento = \'salida\' 
+                            THEN -movimientos_inventario.cantidad * movimientos_inventario.precio_unitario
+                        END
+                    ) as valor
+                ')
                 ->first()
                 ->valor ?? 0,
 

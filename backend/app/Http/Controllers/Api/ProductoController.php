@@ -21,7 +21,7 @@ class ProductoController extends Controller
                 'productos.nombre',
                 'productos.descripcion',
                 'productos.categoria_id',
-                'categorias.nombre as categoria_nombre',
+                'categorias.descripcion as categoria_descripcion',
                 'productos.precio_venta as precio',
                 'productos.precio_compra as costo',
                 'productos.stock_actual as stock',
@@ -81,7 +81,7 @@ class ProductoController extends Controller
                 ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
                 ->select(
                     'productos.*',
-                    'categorias.nombre as categoria_nombre',
+                    'categorias.descripcion as categoria_descripcion',
                     'productos.precio_venta as precio',
                     'productos.stock_actual as stock'
                 )
@@ -110,7 +110,7 @@ class ProductoController extends Controller
             ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
             ->select(
                 'productos.*',
-                'categorias.nombre as categoria_nombre',
+                'categorias.descripcion as categoria_descripcion',
                 'productos.precio_venta as precio',
                 'productos.stock_actual as stock'
             )
@@ -174,7 +174,7 @@ class ProductoController extends Controller
                 ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
                 ->select(
                     'productos.*',
-                    'categorias.nombre as categoria_nombre',
+                    'categorias.descripcion as categoria_descripcion',
                     'productos.precio_venta as precio',
                     'productos.stock_actual as stock'
                 )

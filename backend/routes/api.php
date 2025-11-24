@@ -130,10 +130,12 @@ Route::get('/reportes/ventas-por-categoria', [App\Http\Controllers\Api\ReporteCo
 // INSUMOS
 // ==========================================
 
+Route::post('/insumos/movimiento', [App\Http\Controllers\Api\InsumoController::class, 'registrarMovimiento'])
+    ->middleware('check.permissions:insumos,editar');
+Route::get('/insumos/{id}/movimientos', [App\Http\Controllers\Api\InsumoController::class, 'movimientos']);
 Route::get('/insumos', [App\Http\Controllers\Api\InsumoController::class, 'index']);
 Route::get('/insumos/{id}', [App\Http\Controllers\Api\InsumoController::class, 'show']);
 Route::get('/insumos-categorias', [App\Http\Controllers\Api\InsumoController::class, 'categorias']);
-Route::get('/insumos/{id}/movimientos', [App\Http\Controllers\Api\InsumoController::class, 'movimientos']);
 Route::get('/insumos-stats', [App\Http\Controllers\Api\InsumoController::class, 'stats']);
 Route::get('/insumos-stock-bajo', [App\Http\Controllers\Api\InsumoController::class, 'stockBajo']);
 
@@ -144,8 +146,6 @@ Route::put('/insumos/{id}', [App\Http\Controllers\Api\InsumoController::class, '
     ->middleware('check.permissions:insumos,editar');
 Route::delete('/insumos/{id}', [App\Http\Controllers\Api\InsumoController::class, 'destroy'])
     ->middleware('check.permissions:insumos,eliminar');
-Route::post('/insumos/movimiento', [App\Http\Controllers\Api\InsumoController::class, 'registrarMovimiento'])
-    ->middleware('check.permissions:insumos,editar');
 
 // ==========================================
 // CLIENTES

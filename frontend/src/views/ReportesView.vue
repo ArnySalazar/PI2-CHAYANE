@@ -130,7 +130,7 @@
           <div class="stat-card green">
             <div class="stat-icon">💰</div>
             <div class="stat-content">
-              <h3>S/ {{ formatNumber(reporteVentas.resumen.total_general || 0) }}</h3>
+              <h3>S/ {{ formatNumber(reporteVentas.resumen.total_subtotal || 0) }}</h3>
               <p>Ingresos Totales</p>
             </div>
           </div>
@@ -140,14 +140,6 @@
             <div class="stat-content">
               <h3>S/ {{ formatNumber(reporteVentas.resumen.promedio_venta || 0) }}</h3>
               <p>Venta Promedio</p>
-            </div>
-          </div>
-
-          <div class="stat-card orange">
-            <div class="stat-icon">📈</div>
-            <div class="stat-content">
-              <h3>S/ {{ formatNumber(reporteVentas.resumen.total_impuesto || 0) }}</h3>
-              <p>IGV Total</p>
             </div>
           </div>
         </div>
@@ -164,7 +156,7 @@
                   :style="{
                     height: calcularAlturaBarra(dia.total, reporteVentas.ventas_por_dia) + '%',
                   }"
-                  :title="`S/ ${formatNumber(dia.total)}`"
+                  :title="`S/ ${formatNumber(dia.otal)}`"
                 >
                   <span class="bar-value">{{ dia.cantidad }}</span>
                 </div>
@@ -447,7 +439,7 @@ export default {
     },
 
     calcularAlturaBarra(valor, datos) {
-      const max = Math.max(...datos.map((d) => parseFloat(d.total)))
+      const max = Math.max(...datos.map((d) => parseFloat(d.subtotal)))
       return (valor / max) * 100
     },
 
@@ -458,7 +450,7 @@ export default {
         yape: '📱',
         plin: '📱',
       }
-      return iconos[metodo] || '💰'
+      return iconos[metodo]
     },
 
     getPrimerDiaMes() {
