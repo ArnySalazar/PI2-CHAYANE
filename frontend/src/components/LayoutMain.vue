@@ -21,20 +21,41 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div class="user-profile">
-          <div class="avatar">{{ userInitial }}</div>
-          <div class="user-details">
-            <strong>{{ userName }}</strong>
-            <small>{{ userRole }}</small>
-          </div>
-        </div>
-        <button @click="handleLogout" class="btn-logout-sidebar" title="Cerrar sesión">🚪</button>
+        <button @click="handleLogout" class="btn-logout-sidebar" title="Cerrar sesión">
+          🚪 Salir
+        </button>
       </div>
     </aside>
 
     <!-- Main Content -->
     <main class="main-content">
-      <slot></slot>
+      <!-- Header con información del usuario -->
+      <header class="top-header">
+        <div class="header-left">
+          <h1 class="page-title">Sistema de Gestión</h1>
+        </div>
+
+        <div class="header-right">
+          <!-- Información del usuario destacada -->
+          <div class="user-info-header">
+            <div class="user-badge">
+              <div class="user-avatar-large">{{ userInitial }}</div>
+              <div class="user-text">
+                <div class="user-name-large">{{ userName }}</div>
+                <div class="user-role-badge" :class="roleClass">
+                  <span class="role-icon">{{ roleIcon }}</span>
+                  {{ userRole }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Contenido principal -->
+      <div class="content-wrapper">
+        <slot></slot>
+      </div>
     </main>
   </div>
 </template>
@@ -58,6 +79,26 @@ export default {
     userInitial() {
       const name = this.userName || 'A'
       return name.charAt(0).toUpperCase()
+    },
+    roleClass() {
+      // Clase CSS según el rol para diferentes colores
+      const role = this.userRole.toLowerCase()
+      if (role.includes('admin')) return 'role-admin'
+      if (role.includes('gerente')) return 'role-gerente'
+      if (role.includes('cajero')) return 'role-cajero'
+      if (role.includes('cocina')) return 'role-cocina'
+      if (role.includes('mozo') || role.includes('mesero')) return 'role-mozo'
+      return 'role-default'
+    },
+    roleIcon() {
+      // Icono según el rol
+      const role = this.userRole.toLowerCase()
+      if (role.includes('admin')) return '👑'
+      if (role.includes('gerente')) return '💼'
+      if (role.includes('cajero')) return '💰'
+      if (role.includes('cocina')) return '👨‍🍳'
+      if (role.includes('mozo') || role.includes('mesero')) return '🍽️'
+      return '👤'
     },
     menuItems() {
       const auth = this.authStore
@@ -237,74 +278,34 @@ export default {
 .sidebar-footer {
   padding: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.user-details strong {
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-details small {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
 }
 
 .btn-logout-sidebar {
+  width: 100%;
   background: rgba(231, 76, 60, 0.2);
   border: 1px solid rgba(231, 76, 60, 0.5);
   color: white;
-  width: 36px;
-  height: 36px;
+  padding: 12px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 600;
   transition: all 0.3s;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
 }
 
 .btn-logout-sidebar:hover {
   background: #e74c3c;
   border-color: #e74c3c;
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
 .btn-logout-sidebar:active {
-  transform: scale(0.95);
+  transform: translateY(0);
 }
 
 /* Main Content */
@@ -313,6 +314,130 @@ export default {
   margin-left: 260px;
   background: #f5f7fa;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Superior */
+.top-header {
+  background: white;
+  padding: 20px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 3px solid #3498db;
+}
+
+.header-left .page-title {
+  margin: 0;
+  font-size: 24px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Badge de usuario mejorado */
+.user-info-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 12px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-avatar-large {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: white;
+  color: #667eea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 24px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-name-large {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+}
+
+.user-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  width: fit-content;
+}
+
+.role-icon {
+  font-size: 14px;
+}
+
+/* Colores por rol */
+.role-admin {
+  background: #ffd700;
+  color: #2c3e50;
+}
+
+.role-gerente {
+  background: #3498db;
+  color: white;
+}
+
+.role-cajero {
+  background: #27ae60;
+  color: white;
+}
+
+.role-cocina {
+  background: #e67e22;
+  color: white;
+}
+
+.role-mozo {
+  background: #9b59b6;
+  color: white;
+}
+
+.role-default {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+/* Content Wrapper */
+.content-wrapper {
+  flex: 1;
+  padding: 30px;
 }
 
 /* Responsive */
@@ -322,8 +447,7 @@ export default {
   }
 
   .sidebar .logo p,
-  .menu-item span:not(.icon),
-  .user-details {
+  .menu-item span:not(.icon) {
     display: none;
   }
 
@@ -340,12 +464,40 @@ export default {
     margin-left: 70px;
   }
 
-  .user-profile {
-    justify-content: center;
+  .top-header {
+    padding: 15px 20px;
+  }
+
+  .header-left .page-title {
+    font-size: 18px;
+  }
+
+  .user-info-header {
+    padding: 8px 12px;
+  }
+
+  .user-badge {
+    gap: 10px;
+  }
+
+  .user-avatar-large {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .user-name-large {
+    font-size: 14px;
+  }
+
+  .user-role-badge {
+    font-size: 11px;
+    padding: 3px 8px;
   }
 
   .btn-logout-sidebar {
-    width: 100%;
+    font-size: 12px;
+    padding: 10px;
   }
 }
 
@@ -356,6 +508,14 @@ export default {
 
   .main-content {
     margin-left: 60px;
+  }
+
+  .user-text {
+    display: none;
+  }
+
+  .user-info-header {
+    padding: 8px;
   }
 }
 </style>

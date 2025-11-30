@@ -106,17 +106,26 @@ class DashboardController extends Controller
                     ->value('promedio') ?? 0,
             ];
 
+            // ✅ ESTRUCTURA CORREGIDA - Coincide con lo que espera el frontend
             return response()->json([
-                'total_productos' => $totalProductos,
-                'valor_inventario' => round($valorInventario, 2),
-                'productos_stock_bajo' => $productosStockBajo,
-                'total_categorias' => $totalCategorias,
-                'ventas_hoy' => $ventasHoy,
-                'total_ventas_hoy' => round($totalVentasHoy, 2),
-                'productos_mas_vendidos' => $productosMasVendidos,
-                'productos_por_categoria' => $productosPorCategoria,
-                'top_productos' => $topProductos,
-                'alertas_stock_bajo' => $alertasStockBajo,
+                'kpis' => [
+                    'total_productos' => $totalProductos,
+                    'valor_inventario' => round($valorInventario, 2),
+                    'productos_stock_bajo' => $productosStockBajo,
+                    'total_categorias' => $totalCategorias,
+                ],
+                'ventas' => [
+                    'ventas_hoy' => $ventasHoy,
+                    'total_ventas_hoy' => round($totalVentasHoy, 2),
+                    'productos_mas_vendidos' => $productosMasVendidos,
+                ],
+                'graficos' => [
+                    'productos_por_categoria' => $productosPorCategoria,
+                    'top_productos' => $topProductos,
+                ],
+                'alertas' => [
+                    'stock_bajo' => $alertasStockBajo,
+                ],
                 'cocina' => $cocina
             ]);
 

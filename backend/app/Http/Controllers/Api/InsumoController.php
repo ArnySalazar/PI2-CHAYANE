@@ -365,19 +365,10 @@ class InsumoController extends Controller
                 ->where('stock_actual', 0)
                 ->count(),
 
-            'valor_inventario' => DB::table('movimientos_inventario')
-                ->join('insumos', 'movimientos_inventario.insumo_id', '=', 'insumos.id')
-                ->where('insumos.estado', true)
-                ->selectRaw('
-                    SUM(
-                        CASE 
-                            WHEN movimientos_inventario.tipo_movimiento = \'entrada\' 
-                            THEN movimientos_inventario.cantidad * movimientos_inventario.precio_unitario
-                            WHEN movimientos_inventario.tipo_movimiento = \'salida\' 
-                            THEN -movimientos_inventario.cantidad * movimientos_inventario.precio_unitario
-                        END
-                    ) as valor
-                ')
+            // ✅ CÁLCULO CORREGIDO: stock_actual * precio_compra
+            'valor_inventario' => DB::table('insumos')
+                ->where('estado', true)
+                ->selectRaw('SUM(stock_actual * precio_compra) as valor')
                 ->first()
                 ->valor ?? 0,
 

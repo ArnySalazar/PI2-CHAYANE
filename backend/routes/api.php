@@ -69,6 +69,9 @@ Route::get('/user/permissions/{userId}', function ($userId) {
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
+Route::get('/menu-publico', [App\Http\Controllers\Api\MenuPublicoController::class, 'index']);
+Route::get('/menu-publico/categorias', [App\Http\Controllers\Api\MenuPublicoController::class, 'categorias']);
+
 
 Route::get('/test', function () {
     return response()->json([
