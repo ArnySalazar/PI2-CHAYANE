@@ -50,11 +50,11 @@ class MenuPublicoController extends Controller
 
             // Información del restaurante
             $infoRestaurante = [
-                'nombre' => 'Restaurante Chayane',
+                'nombre' => 'La sazón de Pilar',
                 'eslogan' => 'Sabor auténtico peruano',
-                'horario' => 'Lunes a Domingo: 12:00 PM - 10:00 PM',
-                'telefono' => '+51 999 888 777',
-                'direccion' => 'Av. Principal 123, Lima, Perú'
+                'horario' => 'Lunes a sabado: 11:00 PM - 5:00 PM',
+                'telefono' => '+51 946 469 970',
+                'direccion' => 'Av. Amezaga 51, Lima, Perú'
             ];
 
             return response()->json([
