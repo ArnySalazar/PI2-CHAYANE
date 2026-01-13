@@ -193,7 +193,7 @@ Los permisos se manejan por rol y módulo con acciones específicas:
 
 ## 👥 Equipo de Desarrollo
 
-- **Desarrollador Principal**: [Tu Nombre]
+- **Desarrollador Principal**: Arny Salazar, Stephany Toribio
 - **Proyecto**: Sistema ERP para Restaurante Chayane
 
 ## 📄 Licencia
