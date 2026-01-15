@@ -343,7 +343,7 @@
                       </td>
                       <td>{{ formatDateTime(venta.fecha) }}</td>
                       <td v-if="esAdminOGerente" class="total">
-                        S/ {{ formatNumber(venta.total) }}
+                        S/ {{ formatNumber(venta.subtotal) }}
                       </td>
                       <td>
                         <span class="badge-estado" :class="venta.estado">

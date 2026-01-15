@@ -334,9 +334,9 @@
                 </select>
               </div>
               <div class="form-group">
-                <label>Precio Unitario:</label>
+                <label>Precio Compra:</label>
                 <input
-                  v-model.number="formMovimiento.precio_unitario"
+                  v-model.number="formMovimiento.precio_compra"
                   type="number"
                   step="0.01"
                   min="0"
@@ -412,7 +412,7 @@
                     <th>Cantidad</th>
                     <th>Stock Anterior</th>
                     <th>Stock Nuevo</th>
-                    <th>Referencia</th>
+                    <th>Precio</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -430,7 +430,7 @@
                     <td class="text-center">{{ formatNumber(mov.stock_anterior) }}</td>
                     <td class="text-center">{{ formatNumber(mov.stock_nuevo) }}</td>
                     <td>
-                      <small>{{ mov.referencia || '-' }}</small>
+                      S/ {{ formatNumber(mov.precio_unitario) }}
                     </td>
                   </tr>
                 </tbody>
@@ -486,7 +486,7 @@ export default {
         cantidad: 0,
         motivo: '',
         descripcion: '',
-        precio_unitario: 0,
+        precio_compra: 0,
         referencia: '',
       },
     }
@@ -591,14 +591,14 @@ export default {
       this.showModalInsumo = true
     },
 
-    abrirModalMovimiento() {
+    abrirModalMovimiento(insumo) {
       this.formMovimiento = {
         insumo_id: '',
         tipo_movimiento: 'entrada',
         cantidad: 0,
         motivo: '',
         descripcion: '',
-        precio_unitario: 0,
+        precio_compra: insumo.precio_compra,
         referencia: '',
       }
       this.insumoSeleccionado = null
@@ -623,19 +623,30 @@ export default {
     },
 
     async guardarMovimiento() {
-      if (this.calcularStockFinal() < 0) {
-        alert('❌ Stock insuficiente para realizar esta salida')
-        return
-      }
-
       try {
-        await insumosService.registrarMovimiento(this.formMovimiento)
-        alert('✅ Movimiento registrado exitosamente')
-        this.cerrarModales()
-        this.cargarDatos()
+        console.log('📤 DATOS QUE SE ENVÍAN:', this.formMovimiento);
+        
+        // Asegúrate de que insumo_id sea número
+        const datos = {
+          ...this.formMovimiento,
+          insumo_id: Number(this.formMovimiento.insumo_id),
+          cantidad: Number(this.formMovimiento.cantidad),
+          precio_compra: Number(this.formMovimiento.precio_compra) || 0
+        };
+        
+        console.log('📤 DATOS CORREGIDOS:', datos);
+        
+        const resultado = await insumosService.registrarMovimiento(datos);
+        console.log('✅ RESPUESTA:', resultado);
+        
+        alert('✅ Movimiento registrado');
+        this.cerrarModales();
+        this.cargarDatos();
+        
       } catch (error) {
-        console.error('Error al registrar movimiento:', error)
-        alert('❌ Error al registrar movimiento')
+        console.error('❌ ERROR COMPLETO:', error);
+        console.error('❌ RESPUESTA DEL SERVER:', error.response?.data);
+        alert('Error: ' + (error.response?.data?.message || error.message));
       }
     },
 

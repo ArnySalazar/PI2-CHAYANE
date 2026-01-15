@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú - Restaurante Chayane</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 48px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header .logo {
+            font-size: 60px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .info-item .icon {
+            font-size: 20px;
+        }
+
+        /* Última actualización */
+        .update-time {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            font-size: 14px;
+        }
+
+        /* Filtros de categoría */
+        .category-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .category-btn {
+            background: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: #2c3e50;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Sección de categoría */
+        .category-section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-section h2 {
+            color: #2c3e50;
+            font-size: 32px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Grid de productos */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Tarjeta de producto */
+        .product-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-card.unavailable {
+            opacity: 0.6;
+            border-left-color: #e74c3c;
+        }
+
+        .product-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .product-description {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-price {
+            font-size: 28px;
+            font-weight: 700;
+            color: #27ae60;
+        }
+
+        .availability-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .availability-badge.available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .availability-badge.unavailable {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: white;
+            font-size: 24px;
+        }
+
+        .loading .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error */
+        .error {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: #e74c3c;
+        }
+
+        /* Empty state */
+        .empty-state {
+            background: white;
+            padding: 60px;
+            border-radius: 20px;
+            text-align: center;
+            color: #7f8c8d;
+        }
+
+        .empty-state .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* Footer */
+        .footer {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .info-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span class="logo">🍽️</span>
+                <span id="restaurant-name">Restaurante Chayane</span>
+            </h1>
+            <p id="restaurant-slogan">Sabor auténtico peruano</p>
+            <div class="info-bar">
+                <div class="info-item">
+                    <span class="icon">🕐</span>
+                    <span id="restaurant-hours">Cargando...</span>
+                </div>
+                <div class="info-item">
+                    <span class="icon">📞</span>
+                    <span id="restaurant-phone">Cargando...</span>
+                </div>
+                <div class="info-item">
+                    <span class="icon">📍</span>
+                    <span id="restaurant-address">Cargando...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Última actualización -->
+        <div class="update-time">
+            ⏰ Última actualización: <span id="last-update">--</span>
+            <button onclick="loadMenu()" style="margin-left: 15px; padding: 5px 15px; border: none; background: white; border-radius: 20px; cursor: pointer; font-weight: 600;">🔄 Actualizar</button>
+        </div>
+
+        <!-- Filtros de categoría -->
+        <div class="category-filters" id="category-filters">
+            <!-- Se llenarán dinámicamente -->
+        </div>
+
+        <!-- Contenido del menú -->
+        <div id="menu-content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Cargando menú...</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🍽️ Menú actualizado en tiempo real desde nuestro sistema</p>
+            <p style="margin-top: 10px; font-size: 12px;">© 2025 Restaurante Chayane - Todos los derechos reservados</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de la API - Usa la misma URL base del servidor
+        const API_URL = window.location.origin + '/api/menu-publico';
+        
+        let menuData = null;
+        let selectedCategory = 'todos';
+
+        // Cargar el menú al iniciar
+        window.addEventListener('load', () => {
+            loadMenu();
+            // Auto-actualizar cada 5 minutos
+            setInterval(loadMenu, 5 * 60 * 1000);
+        });
+
+        async function loadMenu() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                menuData = data;
+                
+                // Actualizar información del restaurante
+                document.getElementById('restaurant-name').textContent = data.restaurante.nombre;
+                document.getElementById('restaurant-slogan').textContent = data.restaurante.eslogan;
+                document.getElementById('restaurant-hours').textContent = data.restaurante.horario;
+                document.getElementById('restaurant-phone').textContent = data.restaurante.telefono;
+                document.getElementById('restaurant-address').textContent = data.restaurante.direccion;
+                
+                // Actualizar tiempo
+                const fecha = new Date(data.ultima_actualizacion);
+                document.getElementById('last-update').textContent = fecha.toLocaleString('es-PE');
+                
+                // Renderizar filtros y menú
+                renderCategoryFilters(data.menu);
+                renderMenu(data.menu);
+                
+            } catch (error) {
+                console.error('Error al cargar menú:', error);
+                document.getElementById('menu-content').innerHTML = `
+                    <div class="error">
+                        <h2>❌ Error al cargar el menú</h2>
+                        <p>Por favor, intenta de nuevo más tarde.</p>
+                        <button onclick="loadMenu()" style="margin-top: 20px; padding: 12px 24px; border: none; background: #667eea; color: white; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Reintentar</button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderCategoryFilters(menu) {
+            const categorias = Object.keys(menu);
+            const filtersHTML = `
+                <button class="category-btn ${selectedCategory === 'todos' ? 'active' : ''}" onclick="filterCategory('todos')">
+                    📋 Todos
+                </button>
+                ${categorias.map(cat => `
+                    <button class="category-btn ${selectedCategory === cat ? 'active' : ''}" onclick="filterCategory('${cat}')">
+                        ${cat}
+                    </button>
+                `).join('')}
+            `;
+            document.getElementById('category-filters').innerHTML = filtersHTML;
+        }
+
+        function filterCategory(category) {
+            selectedCategory = category;
+            renderMenu(menuData.menu);
+            renderCategoryFilters(menuData.menu);
+        }
+
+        function renderMenu(menu) {
+            const categorias = Object.keys(menu);
+            
+            if (categorias.length === 0) {
+                document.getElementById('menu-content').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🍽️</div>
+                        <h2>No hay productos disponibles en este momento</h2>
+                        <p>Por favor, vuelve más tarde</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            categorias.forEach(categoria => {
+                // Filtrar por categoría si es necesario
+                if (selectedCategory !== 'todos' && selectedCategory !== categoria) {
+                    return;
+                }
+
+                const productos = menu[categoria];
+                
+                html += `
+                    <div class="category-section">
+                        <h2>${getCategoryIcon(categoria)} ${categoria}</h2>
+                        <div class="products-grid">
+                            ${productos.map(producto => `
+                                <div class="product-card ${!producto.disponible ? 'unavailable' : ''}">
+                                    <div class="product-name">${producto.nombre}</div>
+                                    <div class="product-description">${producto.descripcion || 'Delicioso plato preparado con ingredientes frescos'}</div>
+                                    <div class="product-footer">
+                                        <div class="product-price">S/ ${producto.precio}</div>
+                                        <span class="availability-badge ${producto.disponible ? 'available' : 'unavailable'}">
+                                            ${producto.disponible ? '✓ Disponible' : '✗ Agotado'}
+                                        </span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('menu-content').innerHTML = html;
+        }
+
+        function getCategoryIcon(categoria) {
+            const icons = {
+                'Platos con pollo': '🍗',
+                'Entradas y aperitivos': '🥗',
+                'Pastas y fideos': '🍝',
+                'Jugos, gaseosas, refrescos': '🥤',
+                'Bebidas': '🥤',
+                'Postres': '🍰',
+                'Carnes': '🥩',
+                'Mariscos': '🦐',
+                'Sopas': '🍲'
+            };
+            return icons[categoria] || '🍽️';
+        }
+    </script>
+</body>
+</html>

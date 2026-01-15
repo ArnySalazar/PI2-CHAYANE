@@ -59,6 +59,7 @@ class VentaController extends Controller
             $numeroVenta = 'V-' . str_pad(($ultimaVenta->id ?? 0) + 1, 8, '0', STR_PAD_LEFT);
 
             // Crear venta
+            // En el método store(), dentro del array de inserción, agrega:
             $ventaId = DB::table('ventas')->insertGetId([
                 'numero_venta' => $numeroVenta,
                 'fecha' => now(),
@@ -66,6 +67,7 @@ class VentaController extends Controller
                 'mesa_id' => $request->mesa_id,
                 'cliente_nombre' => $request->cliente_nombre ?? 'Cliente General',
                 'cliente_documento' => $request->cliente_documento,
+                'cliente_id' => $request->cliente_id ?? null, // ✅ AGREGAR ESTA LÍNEA
                 'subtotal' => $subtotal,
                 'descuento' => $descuento,
                 'impuesto' => $impuesto,
@@ -264,7 +266,7 @@ class VentaController extends Controller
             'total_hoy' => DB::table('ventas')
                 ->whereDate('fecha', $hoy)
                 ->where('estado', 'completada')
-                ->sum('total') ?? 0,
+                ->sum('subtotal') ?? 0,
             
             'ventas_mes' => DB::table('ventas')
                 ->whereYear('fecha', date('Y'))
@@ -276,7 +278,7 @@ class VentaController extends Controller
                 ->whereYear('fecha', date('Y'))
                 ->whereMonth('fecha', date('m'))
                 ->where('estado', 'completada')
-                ->sum('total') ?? 0,
+                ->sum('subtotal') ?? 0,
 
             'productos_mas_vendidos' => DB::table('detalle_ventas')
                 ->join('productos', 'detalle_ventas.producto_id', '=', 'productos.id')

@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'check.permissions' => \App\Http\Middleware\CheckPermissions::class,
         ]);
+        
+        // ✅ Configurar CORS para permitir acceso público a la API
+        $middleware->api(prepend: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

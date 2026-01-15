@@ -30,7 +30,7 @@ class ReporteController extends Controller
                 SUM(subtotal) as total_subtotal,
                 SUM(impuesto) as total_impuesto,
                 SUM(total) as total_general,
-                AVG(total) as promedio_venta
+                AVG(subtotal) as promedio_venta
             ')
             ->first();
 
@@ -41,7 +41,7 @@ class ReporteController extends Controller
             ->selectRaw('
                 DATE(fecha) as fecha,
                 COUNT(*) as cantidad,
-                SUM(total) as total
+                SUM(subtotal) as total
             ')
             ->groupBy(DB::raw('DATE(fecha)'))
             ->orderBy('fecha', 'asc')
@@ -51,7 +51,7 @@ class ReporteController extends Controller
         $ventasPorMetodo = DB::table('ventas')
             ->whereBetween('fecha', [$fechaInicio, $fechaFin])
             ->where('estado', 'completada')
-            ->select('metodo_pago', DB::raw('COUNT(*) as cantidad'), DB::raw('SUM(total) as total'))
+            ->select('metodo_pago', DB::raw('COUNT(*) as cantidad'), DB::raw('SUM(subtotal) as total'))
             ->groupBy('metodo_pago')
             ->get();
 
@@ -181,14 +181,14 @@ class ReporteController extends Controller
         $ventasHoy = DB::table('ventas')
             ->whereDate('fecha', $hoy)
             ->where('estado', 'completada')
-            ->selectRaw('COUNT(*) as cantidad, SUM(total) as total')
+            ->selectRaw('COUNT(*) as cantidad, SUM(subtotal) as total')
             ->first();
 
         // Ventas del mes
         $ventasMes = DB::table('ventas')
             ->whereBetween('fecha', [$inicioMes . ' 00:00:00', $finMes . ' 23:59:59'])
             ->where('estado', 'completada')
-            ->selectRaw('COUNT(*) as cantidad, SUM(total) as total')
+            ->selectRaw('COUNT(*) as cantidad, SUM(subtotal) as total')
             ->first();
 
         // Productos más vendidos del mes

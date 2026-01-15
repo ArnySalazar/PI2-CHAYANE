@@ -25,7 +25,7 @@ class ClienteController extends Controller
                 ->where('estado', 'completada')
                 ->selectRaw('
                     COUNT(*) as total_compras,
-                    SUM(total) as total_gastado,
+                    SUM(subtotal) as total_gastado,
                     MAX(fecha) as ultima_compra
                 ')
                 ->first();
@@ -112,7 +112,7 @@ class ClienteController extends Controller
             ->where('estado', 'completada')
             ->selectRaw('
                 COUNT(*) as total_compras,
-                SUM(total) as total_gastado,
+                SUM(subtotal) as total_gastado,
                 MAX(fecha) as ultima_compra,
                 MIN(fecha) as primera_compra
             ')
@@ -128,7 +128,7 @@ class ClienteController extends Controller
         // Obtener historial de compras
         $cliente->historial_compras = DB::table('ventas')
             ->where('cliente_id', $id)
-            ->select('id', 'numero_venta', 'fecha', 'total', 'estado')
+            ->select('id', 'numero_venta', 'fecha', 'subtotal', 'estado')
             ->orderBy('fecha', 'desc')
             ->limit(10)
             ->get();
@@ -298,7 +298,7 @@ class ClienteController extends Controller
             ->select(
                 'clientes.*',
                 DB::raw('COUNT(ventas.id) as total_compras'),
-                DB::raw('SUM(ventas.total) as total_gastado'),
+                DB::raw('SUM(ventas.subtotal) as total_gastado'),
                 DB::raw('MAX(ventas.fecha) as ultima_visita')
             )
             ->groupBy('clientes.id')

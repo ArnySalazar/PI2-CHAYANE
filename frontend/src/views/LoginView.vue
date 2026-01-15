@@ -36,11 +36,11 @@
         <!-- Usuarios de prueba -->
         <div class="demo-users">
           <p><strong>Usuarios de prueba:</strong></p>
-          <p>👑 admin@chayane.com / admin123</p>
-          <p>🍽️ mesera@chayane.com / password123</p>
-          <p>👨‍🍳 cocinero@chayane.com / password123</p>
-          <p>💰 cajera@chayane.com / password123</p>
-          <p>📊 gerente@chayane.com / password123</p>
+          <p>👑 admin@chayane.com / password</p>
+          <p>🍽️ mesera@chayane.com / password</p>
+          <p>👨‍🍳 cocinero@chayane.com / password</p>
+          <p>💰 cajera@chayane.com / password</p>
+          <p>📊 gerente@chayane.com / password</p>
         </div>
       </form>
     </div>
